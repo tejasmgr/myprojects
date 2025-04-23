@@ -70,9 +70,9 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         User user = userDetails.getUser();
-        if(!user.isEnabled()) throw new AccountDisabledException("Account not verified");
-        if(user.isBlocked()) throw new AccountBlockedException("Account blocked");
-
+        if(!userDetails.isEnabled()) throw new AccountDisabledException("Account not verified");
+        if(userDetails.isBlocked()) throw new AccountBlockedException("Account blocked");
+        
         return AuthResponse.builder()
                 .accessToken(jwtUtil.generateToken((userDetails)))
                 .user(user)
