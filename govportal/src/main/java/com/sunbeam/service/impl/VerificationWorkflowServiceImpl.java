@@ -4,6 +4,7 @@ import com.sunbeam.exception.*;
 import com.sunbeam.model.*;
 import com.sunbeam.repository.DocumentApplicationRepository;
 import com.sunbeam.repository.UserRepository;
+import com.sunbeam.repository.VerificationDeskAssignmentRepository;
 import com.sunbeam.service.VerificationWorkflowService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -19,32 +20,66 @@ public class VerificationWorkflowServiceImpl implements VerificationWorkflowServ
 
     private final DocumentApplicationRepository appRepository;
     private final UserRepository userRepository;
+    private final VerificationDeskAssignmentRepository deskAssignmentRepository;
     
     @Override
     @Transactional
     public void assignToVerificationDesk(DocumentApplication application) {
-        List<User> verifiers = userRepository.findAvailableVerifiers();
+        // Find available verifiers for the first desk
+        List<User> availableVerifiers = userRepository.findAvailableVerifiers();
         
-        if(verifiers.isEmpty()) {
-            throw new NoAvailableVerifiersException("No verifiers available");
+        if (!availableVerifiers.isEmpty()) {
+            // Assign to first available verifier
+            User verifier = availableVerifiers.get(0);
+            
+            VerificationDeskAssignment assignment = new VerificationDeskAssignment();
+            assignment.setApplication(application);
+            assignment.setVerifier(verifier);
+            assignment.setDeskLevel("DESK_1");
+            
+            deskAssignmentRepository.save(assignment);
+            
+            // Add to application's assigned verifiers
+            application.getAssignedVerifiers().add(verifier);
+            appRepository.save(application);
         }
-        
-        application.setAssignedVerifiers(verifiers.stream()
-                .limit(3)
-                .collect(Collectors.toList()));
-        application.setCurrentDesk("DESK_1");
-        appRepository.save(application);
     }
+
 
     @Override
     @Transactional
     public void moveToNextDesk(DocumentApplication application) {
-        if(!"DESK_1".equals(application.getCurrentDesk())) {
-            throw new WorkflowException("Application already in final desk");
-        }
+        // Current desk logic
+        String currentDesk = application.getCurrentDesk();
         
-        application.setCurrentDesk("DESK_2");
-        appRepository.save(application);
+        if ("DESK_1".equals(currentDesk)) {
+            // Move to Desk 2
+            application.setCurrentDesk("DESK_2");
+            appRepository.save(application);
+            
+            // Assign to next available verifier
+            List<User> availableVerifiers = userRepository.findAvailableVerifiers();
+            if (!availableVerifiers.isEmpty()) {
+                User verifier = availableVerifiers.get(0);
+                
+                VerificationDeskAssignment assignment = new VerificationDeskAssignment();
+                assignment.setApplication(application);
+                assignment.setVerifier(verifier);
+                assignment.setDeskLevel("DESK_2");
+                
+                deskAssignmentRepository.save(assignment);
+                
+                application.getAssignedVerifiers().add(verifier);
+                appRepository.save(application);
+            }
+        } else if ("DESK_2".equals(currentDesk)) {
+            // Final approval - generate certificate
+            application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
+            application.setResolvedDate(LocalDateTime.now());
+            appRepository.save(application);
+            
+            // Generate certificate would happen automatically here
+        }
     }
 
     @Override
