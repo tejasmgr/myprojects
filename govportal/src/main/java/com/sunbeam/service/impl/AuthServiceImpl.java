@@ -21,6 +21,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -52,9 +55,12 @@ public class AuthServiceImpl implements AuthService {
         String verificationToken = UUID.randomUUID().toString();
         tokenService.createVerificationToken(savedUser, verificationToken);
         emailService.sendVerificationEmail(user.getEmail(), verificationToken);
+        
+        Map<String, Object> extraClaimsRegister = new HashMap<>();
+        extraClaimsRegister.put("roles", List.of(savedUser.getRole().name()));
 
         return AuthResponse.builder()
-                .accessToken(jwtUtil.generateToken(new CustomUserDetails(savedUser)))
+                .accessToken(jwtUtil.generateToken(extraClaimsRegister, new CustomUserDetails(savedUser)))
                 .user(savedUser)
                 .build();
     }
@@ -72,9 +78,12 @@ public class AuthServiceImpl implements AuthService {
         User user = userDetails.getUser();
         if(!userDetails.isEnabled()) throw new AccountDisabledException("Account not verified");
         if(userDetails.isBlocked()) throw new AccountBlockedException("Account blocked");
-        
+        // Add roles to the JWT claims
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("roles", List.of(user.getRole().name()));
+
         return AuthResponse.builder()
-                .accessToken(jwtUtil.generateToken((userDetails)))
+                .accessToken(jwtUtil.generateToken(extraClaims, userDetails))
                 .user(user)
                 .build();
     }
