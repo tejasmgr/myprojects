@@ -2,6 +2,7 @@ package com.sunbeam.controller;
 
 import com.sunbeam.dto.request.UserUpdateRequest;
 import com.sunbeam.dto.response.UserResponse;
+import com.sunbeam.model.User;
 import com.sunbeam.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,15 +16,15 @@ public class UserController {
 
     private final UserService userService;
     
-    @GetMapping("/me")
-    public ResponseEntity<UserResponse> getCurrentUserProfile() {
-        return ResponseEntity.ok(userService.getCurrentUserProfile());
-    }
-
 //    @GetMapping("/me")
-//    public ResponseEntity<UserResponse> getCurrentUser() {
+//    public ResponseEntity<UserResponse> getCurrentUserProfile() {
 //        return ResponseEntity.ok(userService.getCurrentUserProfile());
 //    }
+
+    @GetMapping("/me")
+    public ResponseEntity<User> getCurrentUser() {
+        return ResponseEntity.ok(userService.getCurrentUser());
+    }
 
     @PutMapping("/me")
     public ResponseEntity<?> updateProfile(
@@ -35,6 +36,4 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         return ResponseEntity.ok(userService.getUserProfile(id));
     }
-    
-    
 }

@@ -1,17 +1,28 @@
 package com.sunbeam.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunbeam.dto.request.DocumentApplicationRequest;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
+import com.sunbeam.model.CustomUserDetails;
+import com.sunbeam.model.DocumentApplication.DocumentType;
+import com.sunbeam.model.User;
 import com.sunbeam.service.DocumentService;
 import com.sunbeam.service.VerificationWorkflowService;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -19,33 +30,55 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DocumentController {
 
-    private final DocumentService documentService;
-    private final VerificationWorkflowService workflowService;
+	private final DocumentService documentService;
+	private final VerificationWorkflowService workflowService;
+	@Autowired
+	private ObjectMapper objectMapper;
 
-    @PostMapping("/ submit-application")
-    public ResponseEntity<DocumentApplicationResponse> submitApplication(
-            @Valid @ModelAttribute DocumentApplicationRequest request) {
-    	DocumentApplicationResponse response = documentService.submitApplication(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-       
-    }
+	@PostMapping("/submit")
+	public ResponseEntity<String> submitDocumentApplication(
+			@Valid @RequestPart("applicationData") String applicationRequest,
+			@RequestPart("documents") List<MultipartFile> documents,
+			@AuthenticationPrincipal CustomUserDetails userDetails) {
+		try {
+			DocumentApplicationRequest documentApplicationRequest = objectMapper.readValue(applicationRequest, DocumentApplicationRequest.class);
+			// 1. Get the authenticated user
+			User applicant = userDetails.getUser(); // Assuming your UserDetails implementation is your User entity
+			// 2. Call the service to submit the application
+			documentService.submitApplication(applicant, documentApplicationRequest, documents);
+			return ResponseEntity.status(HttpStatus.CREATED).body("Application submitted successfully");
+		} 
+		catch (jakarta.validation.ConstraintViolationException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Validation error: " + e.getMessage());
+		} catch (com.sunbeam.exception.InvalidDocumentTypeException e) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		} catch (IOException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("Failed to upload documents: " + e.getMessage());
+		} catch (com.sunbeam.exception.FileStorageException e) { // Catch your custom exception
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+					.body("File storage error: " + e.getMessage());
+		} catch (com.sunbeam.exception.DatabaseOperationException e) { // Catch your custom exception
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database error: " + e.getMessage());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred: " + e.getMessage());
+		}
+	}
 
-    @GetMapping("/my-applications")
-    public ResponseEntity<List<DocumentApplicationResponse>> getUserApplications() {
-        return ResponseEntity.ok(documentService.getUserApplications());
-    }
+	@GetMapping("/my-applications")
+	public ResponseEntity<List<DocumentApplicationResponse>> getUserApplications() {
+		return ResponseEntity.ok(documentService.getUserApplications());
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<DocumentApplicationResponse> getApplication(@PathVariable Long id) {
-        return ResponseEntity.ok(documentService.getApplicationById(id));
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<DocumentApplicationResponse> getApplication(@PathVariable Long id) {
+		return ResponseEntity.ok(documentService.getApplicationById(id));
+	}
 
-    @GetMapping("/{id}/download")
-    public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id) {
-        byte[] pdfBytes = documentService.generateCertificatePdf(id);
-        return ResponseEntity.ok()
-                .header("Content-Type", "application/pdf")
-                .header("Content-Disposition", "attachment; filename=\"certificate.pdf\"")
-                .body(pdfBytes);
-    }
+	@GetMapping("/{id}/download")
+	public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id) {
+		byte[] pdfBytes = documentService.generateCertificatePdf(id);
+		return ResponseEntity.ok().header("Content-Type", "application/pdf")
+				.header("Content-Disposition", "attachment; filename=\"certificate.pdf\"").body(pdfBytes);
+	}
 }
