@@ -1,6 +1,7 @@
 package com.sunbeam.service;
 
 import com.sunbeam.dto.request.CreateVerifierRequest;
+import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.response.AdminStatsResponse;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.model.DocumentApplication;
@@ -17,4 +18,5 @@ public interface AdminService {
     Page<UserResponse> getAllCitizens(Pageable pageable);
     AdminStatsResponse getSystemStatistics();
     List<DocumentApplication> getAllApplications(String status);
+	Page<UserResponse> getAllVerifiers(Pageable pageable);
 }

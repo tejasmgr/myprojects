@@ -34,13 +34,15 @@ public class AdminController {
     public ResponseEntity<UserResponse> createVerifier(
             @Valid @RequestBody CreateVerifierRequest request
     ) {
-    	System.out.println("Inside Create Verifier Method from Admin COntroller");
         return ResponseEntity.ok(adminService.createVerifierAccount(request));
     }
     
+    @GetMapping("/verifiers")
+    public ResponseEntity<Page<UserResponse>> getAllVerifiers(@PageableDefault(size = 20) Pageable pageable){
+    	 return ResponseEntity.ok(adminService.getAllVerifiers(pageable));
+    }
     
-
-    @DeleteMapping("/verifiers/{id}")
+    @DeleteMapping("/delete-verifier/{id}")
     public ResponseEntity<Void> deleteVerifier(@PathVariable Long id) {
         adminService.deleteVerifierAccount(id);
         return ResponseEntity.noContent().build();
