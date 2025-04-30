@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface DocumentApplicationRepository extends JpaRepository<DocumentApplication, Long> {
-    List<DocumentApplication> findByCitizen(User citizen);
+    List<DocumentApplication> findByApplicant(User applicant);
     List<DocumentApplication> findByAssignedVerifiersContaining(User verifier);
     List<DocumentApplication> findByStatus(ApplicationStatus status);
     List<DocumentApplication> findByCurrentDesk(String deskLevel);
@@ -23,9 +23,9 @@ public interface DocumentApplicationRepository extends JpaRepository<DocumentApp
     @Query("SELECT da.status as status, COUNT(da) as count FROM DocumentApplication da GROUP BY da.status")
     List<Object[]> getCountByStatus();
 
-    @Query("SELECT AVG(TIMESTAMPDIFF(MINUTE, da.appliedDate, da.resolvedDate)) " +
-            "FROM DocumentApplication da WHERE da.status = 'APPROVED'")
-    Double getAverageProcessingTime();
+//    @Query("SELECT AVG(TIMESTAMPDIFF(MINUTE, da.appliedDate, da.resolvedDate)) " +
+//            "FROM DocumentApplication da WHERE da.status = 'APPROVED'")
+//    Double getAverageProcessingTime();
 
     // Corrected method with @Query
     @Query("SELECT da FROM DocumentApplication da WHERE da.status = :status ORDER BY da.resolvedDate DESC")
