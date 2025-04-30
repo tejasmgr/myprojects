@@ -17,6 +17,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.stereotype.Component;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -47,6 +48,20 @@ public class SecurityConfig {
 		                        "/swagger-ui/**",
 		                        "/swagger-ui.html")
     					.permitAll()
+    					.requestMatchers(
+    		                    "/v1/api/**",
+    		                    "/v2/api-docs",
+    		                    "/v3/api-docs",
+    		                    "/v3/api-docs/**",
+    		                    "/swagger-resources",
+    		                    "/swagger-resources/**",
+    		                    "/configuration/ui",
+    		                    "/configuration/security",
+    		                    "/swagger-ui/**",
+    		                    "/webjars/**",
+    		                    "/swagger-ui.html"
+    		                ).permitAll()
+    					
 		                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 		                .requestMatchers("/api/verifier/**").hasAnyRole("VERIFIER", "ADMIN")
 		                .anyRequest().authenticated()
@@ -88,6 +103,15 @@ public class SecurityConfig {
 //                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
 //            return new CustomUserDetails(user);
 //        };
+//    }
+    
+//    @Component
+//    public class PasswordHasher {
+//        public PasswordHasher() {
+//            String rawPassword = "Admin@123";
+//            String hashedPassword = new BCryptPasswordEncoder().encode(rawPassword);
+//            System.out.println("BCrypt hash for Admin@123: " + hashedPassword);
+//        }
 //    }
 
     
