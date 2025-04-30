@@ -56,7 +56,7 @@ public class PdfGenerator {
                 .setFont(normalFont)
                 .setFontSize(10)
                 .add("Certificate No: " + application.getId())
-                .add("\nDate: " + application.getAppliedDate().format(DATE_FORMATTER))
+                .add("\nDate: " + application.getSubmissionDate().format(DATE_FORMATTER))
                 .setTextAlignment(TextAlignment.RIGHT)
                 .setMarginBottom(20);
         document.add(details);
@@ -67,7 +67,7 @@ public class PdfGenerator {
                 .setMarginTop(30)
                 .setMarginBottom(30);
         
-        User citizen = application.getCitizen();
+        User citizen = application.getApplicant();
         addTableRow(table, "Full Name:", citizen.getFullName());
         addTableRow(table, "Father's Name:", citizen.getFatherName());
         addTableRow(table, "Address:", citizen.getAddress());

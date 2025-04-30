@@ -9,6 +9,9 @@ import com.sunbeam.repository.DocumentApplicationRepository;
 import com.sunbeam.repository.UserRepository;
 import com.sunbeam.service.AdminService;
 import lombok.RequiredArgsConstructor;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -26,14 +29,17 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final DocumentApplicationRepository appRepository;
     private final PasswordEncoder passwordEncoder;
-
+    @Autowired
+    ModelMapper mapper;
+    
     @Override
     @Transactional
     public UserResponse createVerifierAccount(CreateVerifierRequest request) {
+    	
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException("Email already registered");
         }
-
+        
         User verifier = User.builder()
                 .firstName(request.getFullName().split(" ")[0])
                 .lastName(request.getFullName().split(" ")[1])
@@ -42,8 +48,9 @@ public class AdminServiceImpl implements AdminService {
                 .role(User.Role.VERIFIER)
                 .enabled(true)
                 .build();
-
+        
         User savedUser = userRepository.save(verifier);
+       
         return mapToUserResponse(savedUser);
     }
 
