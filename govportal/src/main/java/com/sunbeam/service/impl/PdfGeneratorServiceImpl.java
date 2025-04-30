@@ -48,7 +48,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
             .setWidth(UnitValue.createPercentValue(80))
             .setMarginTop(20);
 
-        User citizen = application.getCitizen();
+        User citizen = application.getApplicant();
         addTableRow(table, "Certificate Number:", application.getId().toString());
         addTableRow(table, "Full Name:", citizen.getFullName());
         addTableRow(table, "Aadhar Number:", citizen.getAadharNumber());

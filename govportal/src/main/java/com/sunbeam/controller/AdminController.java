@@ -1,7 +1,9 @@
 package com.sunbeam.controller;
 
 import com.sunbeam.dto.request.CreateVerifierRequest;
+import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.response.AdminStatsResponse;
+import com.sunbeam.dto.response.AuthResponse;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.User;
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +30,15 @@ public class AdminController {
 	@Autowired
     private final AdminService adminService;
 
-    @PostMapping("/verifiers")
+    @PostMapping("/create-verifier")
     public ResponseEntity<UserResponse> createVerifier(
             @Valid @RequestBody CreateVerifierRequest request
     ) {
+    	System.out.println("Inside Create Verifier Method from Admin COntroller");
         return ResponseEntity.ok(adminService.createVerifierAccount(request));
     }
+    
+    
 
     @DeleteMapping("/verifiers/{id}")
     public ResponseEntity<Void> deleteVerifier(@PathVariable Long id) {

@@ -12,7 +12,6 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import com.sunbeam.exception.InvalidDocumentTypeException;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -20,91 +19,69 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "document_applications")
 @EntityListeners(AuditingEntityListener.class)
 public class DocumentApplication {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User citizen;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "user_id", nullable = false)
+	private User applicant;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private DocumentType documentType;
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private DocumentType documentType;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private ApplicationStatus status = ApplicationStatus.PENDING;
+	@Column(columnDefinition = "TEXT")
+	private String formData;
 
-    @Column(nullable = false)
-    private String purpose;
+	@OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+	private List<DocumentProof> documentProofs;
 
-    @ElementCollection
-    @CollectionTable(name = "application_documents", joinColumns = @JoinColumn(name = "application_id"))
-    @Column(name = "document_path")
-    private List<String> documentPaths = new ArrayList<>();
+	@Enumerated(EnumType.STRING)
+	@Column(nullable = false)
+	private ApplicationStatus status = ApplicationStatus.PENDING;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "application_verifiers",
-        joinColumns = @JoinColumn(name = "application_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private List<User> assignedVerifiers = new ArrayList<>();
-    
+	@Column(nullable = false)
+	private String purpose;
 
-    private String rejectionReason;
-    private String currentDesk; // "DESK_1", "DESK_2" etc
-    
-    @ManyToOne
-    @JoinColumn(name = "approved_by_user_id")
-    private User approvedBy;
+	@ManyToMany
+	@JoinTable(name = "application_verifier", joinColumns = @JoinColumn(name = "application_id"), inverseJoinColumns = @JoinColumn(name = "verifier_id"))
+	private List<User> assignedVerifiers;
 
-    @CreatedDate
-    @Column(updatable = false)
-    private LocalDateTime appliedDate;
+	private String rejectionReason;
+	private String currentDesk; // "DESK_1", "DESK_2" etc
 
-    @LastModifiedDate
-    private LocalDateTime lastUpdatedDate;
+	@ManyToOne
+	@JoinColumn(name = "approved_by_user_id")
+	private User approvedBy;
 
-    private LocalDateTime resolvedDate;
+	@CreatedDate
+	@Column(updatable = false)
+	private LocalDateTime submissionDate;
 
-    public enum DocumentType {
-        INCOME_CERTIFICATE,
-        CASTE_CERTIFICATE,
-        DOMICILE_CERTIFICATE,
-        BIRTH_CERTIFICATE;
-        
-        public static DocumentType fromString(String text) {
-            try {
-                return DocumentType.valueOf(text.toUpperCase());
-            } catch (IllegalArgumentException e) {
-                throw new InvalidDocumentTypeException("Invalid document type: " + text);
-            }
-    }}
+	@LastModifiedDate
+	private LocalDateTime lastUpdatedDate;
 
-    public enum ApplicationStatus {
-        PENDING,
-        UNDER_REVIEW,
-        APPROVED,
-        REJECTED,
-        REAPPLIED, CHANGES_REQUESTED
-    }
+	private LocalDateTime resolvedDate;
 
-    // Helper method to add document path
-    public void addDocumentPath(String path) {
-        this.documentPaths.add(path);
-    }
+	public enum DocumentType {
+		INCOME_CERTIFICATE, CASTE_CERTIFICATE, DOMICILE_CERTIFICATE, BIRTH_CERTIFICATE;
 
-    public User getApprovedBy() {
-        return this.approvedBy;
-    }
-    
-   
-    
-    
-    
+		public static DocumentType fromString(String text) {
+			try {
+				return DocumentType.valueOf(text.toUpperCase());
+			} catch (IllegalArgumentException e) {
+				throw new InvalidDocumentTypeException("Invalid document type: " + text);
+			}
+		}
+	}
+
+	public enum ApplicationStatus {
+		PENDING, UNDER_REVIEW, APPROVED, REJECTED, REAPPLIED, CHANGES_REQUESTED
+	}
+
 }
