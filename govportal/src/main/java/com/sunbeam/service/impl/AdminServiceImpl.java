@@ -10,10 +10,7 @@ import com.sunbeam.repository.UserRepository;
 import com.sunbeam.service.AdminService;
 import lombok.RequiredArgsConstructor;
 
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,8 +26,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final DocumentApplicationRepository appRepository;
     private final PasswordEncoder passwordEncoder;
-    @Autowired
-    ModelMapper mapper;
+  
     
     @Override
     @Transactional
@@ -38,8 +34,7 @@ public class AdminServiceImpl implements AdminService {
     	
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException("Email already registered");
-        }
-        
+        }  
         User verifier = User.builder()
                 .firstName(request.getFullName().split(" ")[0])
                 .lastName(request.getFullName().split(" ")[1])
@@ -48,22 +43,24 @@ public class AdminServiceImpl implements AdminService {
                 .role(User.Role.VERIFIER)
                 .enabled(true)
                 .build();
+        verifier.setEnabled(true);
         
         User savedUser = userRepository.save(verifier);
-       
+//       System.out.println("Enabled Status of Persisted Entity"+savedUser.isEnabled());
+        
         return mapToUserResponse(savedUser);
     }
 
     @Override
     @Transactional
     public void deleteVerifierAccount(Long verifierId) {
+    	System.out.println("insode service layer");
         User verifier = userRepository.findById(verifierId)
                 .orElseThrow(() -> new UserNotFoundException("Verifier not found"));
         
         if(verifier.getRole() != User.Role.VERIFIER) {
             throw new IllegalArgumentException("User is not a verifier");
-        }
-        
+        }       
         userRepository.delete(verifier);
     }
 
@@ -110,6 +107,13 @@ public class AdminServiceImpl implements AdminService {
                 .email(user.getEmail())
                 .role(user.getRole())
                 .blocked(user.isBlocked())
+                .enabled(user.isEnabled())
                 .build();
     }
+
+	@Override
+	public Page<UserResponse> getAllVerifiers(Pageable pageable) {
+		 Page<User> verifiers = userRepository.findByRole(User.Role.VERIFIER, pageable);
+	        return verifiers.map(this::mapToUserResponse);
+	}
 }
