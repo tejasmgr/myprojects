@@ -1,30 +1,32 @@
 package com.sunbeam.dto.request;
-import com.sunbeam.model.DocumentApplication.DocumentType;
-
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-@Data
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class DocumentApplicationRequest {
-	@NotNull(message = "Document type is required")
-    private DocumentType documentType;
-    
-	private String fullName;
-	
-	private String address;
-	
-    @NotNull(message = "Documents are required")
-    @Size(min = 1, message = "At least one document must be uploaded")
-    private List<MultipartFile> documents;
-    
-    @NotBlank(message = "Purpose is required")
-    @Size(max = 500, message = "Purpose must be less than 500 characters")
-    private String purpose;
-    
-    // Additional fields if needed
-//    private String additionalInfo;
+	@NotBlank(message = "Application type is required")
+    private String applicationType;
+
+ @NotBlank(message = "Application type is required")
+ private String documentType;
+
+
+ @NotBlank(message = "Form data is required")
+ private String formData;
+ 
+ @NotBlank(message = "Purpose is required") // Add validation
+ private String purpose;
+
+
+ //  We don't include userId here, as we'll get it from the
+ //  authentication context on the server-side.
+ //  We also don't include documentProofs in the DTO, as files
+ //  are handled separately via MultipartFile.
 }

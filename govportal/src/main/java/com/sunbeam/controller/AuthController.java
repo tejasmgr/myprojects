@@ -29,6 +29,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest request) {
+    	System.out.println("User is being Autheorized");
         return ResponseEntity.ok(authService.authenticateUser(request));
     }
 
