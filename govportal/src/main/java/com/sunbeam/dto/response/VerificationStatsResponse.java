@@ -10,9 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class VerificationStatsResponse {
-    private long totalAssigned;
+    private long totalApplied;
     private long pending;
     private long approved;
+    private long countOnDesk1;
+    private long countOnDesk2;
     private long rejected;
-    private double approvalRate;
+
 }
