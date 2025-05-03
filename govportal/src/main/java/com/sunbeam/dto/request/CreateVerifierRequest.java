@@ -1,5 +1,7 @@
 package com.sunbeam.dto.request;
 
+import com.sunbeam.model.User.Designation;
+
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -17,5 +19,6 @@ public class CreateVerifierRequest {
     private String password;
     
     @NotBlank(message = "Designation is required")
+    
     private String designation;
 }
