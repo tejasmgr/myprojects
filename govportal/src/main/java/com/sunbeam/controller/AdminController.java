@@ -34,6 +34,7 @@ public class AdminController {
     public ResponseEntity<UserResponse> createVerifier(
             @Valid @RequestBody CreateVerifierRequest request
     ) {
+    	System.out.println("inside admin Controller");
         return ResponseEntity.ok(adminService.createVerifierAccount(request));
     }
     

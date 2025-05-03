@@ -5,6 +5,7 @@ import com.sunbeam.dto.response.AdminStatsResponse;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.exception.*;
 import com.sunbeam.model.*;
+import com.sunbeam.model.User.Designation;
 import com.sunbeam.repository.DocumentApplicationRepository;
 import com.sunbeam.repository.UserRepository;
 import com.sunbeam.service.AdminService;
@@ -31,25 +32,35 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public UserResponse createVerifierAccount(CreateVerifierRequest request) {
+    	System.out.println("Insode Admin Service");
     	
         if(userRepository.existsByEmail(request.getEmail())) {
             throw new EmailAlreadyExistsException("Email already registered");
-        }  
+        }
+        
+        Designation designation = Designation.valueOf(request.getDesignation().toUpperCase());
         User verifier = User.builder()
                 .firstName(request.getFullName().split(" ")[0])
                 .lastName(request.getFullName().split(" ")[1])
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(User.Role.VERIFIER)
+                .designation(designation)
                 .enabled(true)
                 .build();
-        verifier.setEnabled(true);
-        
+//        verifier.setEnabled(true);
+        System.out.println("Designation : "+ verifier.getDesignation()+ "Enabled : "+ verifier.isEnabled());
         User savedUser = userRepository.save(verifier);
 //       System.out.println("Enabled Status of Persisted Entity"+savedUser.isEnabled());
         
         return mapToUserResponse(savedUser);
     }
+    
+    @Override
+	public Page<UserResponse> getAllVerifiers(Pageable pageable) {
+		 Page<User> verifiers = userRepository.findByRole(User.Role.VERIFIER, pageable);
+	        return verifiers.map(this::mapToUserResponse);
+	}
 
     @Override
     @Transactional
@@ -63,6 +74,12 @@ public class AdminServiceImpl implements AdminService {
         }       
         userRepository.delete(verifier);
     }
+    
+    @Override
+    public Page<UserResponse> getAllCitizens(Pageable pageable) {
+        Page<User> citizens = userRepository.findByRole(User.Role.CITIZEN, pageable);
+        return citizens.map(this::mapToUserResponse);
+    }
 
     @Override
     @Transactional
@@ -75,11 +92,7 @@ public class AdminServiceImpl implements AdminService {
         return mapToUserResponse(updatedUser);
     }
 
-    @Override
-    public Page<UserResponse> getAllCitizens(Pageable pageable) {
-        Page<User> citizens = userRepository.findByRole(User.Role.CITIZEN, pageable);
-        return citizens.map(this::mapToUserResponse);
-    }
+
 
     @Override
     public AdminStatsResponse getSystemStatistics() {
@@ -111,9 +124,5 @@ public class AdminServiceImpl implements AdminService {
                 .build();
     }
 
-	@Override
-	public Page<UserResponse> getAllVerifiers(Pageable pageable) {
-		 Page<User> verifiers = userRepository.findByRole(User.Role.VERIFIER, pageable);
-	        return verifiers.map(this::mapToUserResponse);
-	}
+	
 }
