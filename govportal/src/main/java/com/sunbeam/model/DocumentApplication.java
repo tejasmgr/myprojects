@@ -9,6 +9,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.sunbeam.exception.InvalidDocumentTypeException;
 
 import java.time.LocalDateTime;
@@ -21,6 +22,7 @@ import java.util.List;
 @AllArgsConstructor
 @Table(name = "document_applications")
 @EntityListeners(AuditingEntityListener.class)
+
 public class DocumentApplication {
 
 	@Id
@@ -39,6 +41,7 @@ public class DocumentApplication {
 	private String formData;
 
 	@OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+	@JsonManagedReference
 	private List<DocumentProof> documentProofs;
 
 	@Enumerated(EnumType.STRING)
@@ -48,9 +51,7 @@ public class DocumentApplication {
 	@Column(nullable = false)
 	private String purpose;
 
-	@ManyToMany
-	@JoinTable(name = "application_verifier", joinColumns = @JoinColumn(name = "application_id"), inverseJoinColumns = @JoinColumn(name = "verifier_id"))
-	private List<User> assignedVerifiers;
+
 
 	private String rejectionReason;
 	private String currentDesk; // "DESK_1", "DESK_2" etc

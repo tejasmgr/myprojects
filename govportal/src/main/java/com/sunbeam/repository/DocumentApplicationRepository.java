@@ -12,22 +12,21 @@ import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 public interface DocumentApplicationRepository extends JpaRepository<DocumentApplication, Long> {
     List<DocumentApplication> findByApplicant(User applicant);
-    List<DocumentApplication> findByAssignedVerifiersContaining(User verifier);
     List<DocumentApplication> findByStatus(ApplicationStatus status);
-    List<DocumentApplication> findByCurrentDesk(String deskLevel);
+    Page<DocumentApplication> findByCurrentDesk(String deskLevel, Pageable pageable);
     long countByStatus(ApplicationStatus status);
+    long count();
+    long countByCurrentDesk(String deskLevel);
+    DocumentApplication findById(long id);
+    
+    @Query("SELECT da FROM DocumentApplication da LEFT JOIN FETCH da.documentProofs WHERE da.id = :applicationId")
+    Optional<DocumentApplication> findByIdWithProofs(@Param("applicationId") Long applicationId);
 
-    @Query("SELECT da.status as status, COUNT(da) as count FROM DocumentApplication da GROUP BY da.status")
-    List<Object[]> getCountByStatus();
 
-//    @Query("SELECT AVG(TIMESTAMPDIFF(MINUTE, da.appliedDate, da.resolvedDate)) " +
-//            "FROM DocumentApplication da WHERE da.status = 'APPROVED'")
-//    Double getAverageProcessingTime();
-
-    // Corrected method with @Query
     @Query("SELECT da FROM DocumentApplication da WHERE da.status = :status ORDER BY da.resolvedDate DESC")
     List<DocumentApplication> findTopNByStatusOrderByResolvedDateDesc(@Param("status") ApplicationStatus status, org.springframework.data.domain.Pageable pageable);
 
