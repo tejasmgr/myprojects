@@ -1,6 +1,6 @@
 package com.sunbeam.model;
 
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -24,8 +24,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class User {
-
+	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -51,6 +52,9 @@ public class User {
 
     @Column(nullable = false)
     private boolean blocked = false;
+    
+    @Enumerated(EnumType.STRING)
+    private Designation designation = null;
 
     // Citizen-specific fields
     private String address;
@@ -73,6 +77,11 @@ public class User {
         CITIZEN, 
         VERIFIER, 
         ADMIN
+    }
+    
+    public enum Designation {
+        JUNIOR_VERIFIER, 
+        SENIOR_VERIFIER, 
     }
 
     // Full name getter

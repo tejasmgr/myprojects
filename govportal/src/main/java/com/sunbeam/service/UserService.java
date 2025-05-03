@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface UserService {
     User getCurrentUser();
     UserResponse getUserProfile(Long userId);
-    List<User> getAllVerifiers();
+//    List<User> getAllVerifiers();
     void updateUserProfile(User user);
 	UserResponse getCurrentUserProfile();
 	ApiResponse updateUserProfile(@Valid UserUpdateRequest request);
