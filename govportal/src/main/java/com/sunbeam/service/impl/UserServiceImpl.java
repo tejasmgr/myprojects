@@ -46,10 +46,10 @@ public class UserServiceImpl implements UserService {
         return mapToUserResponse(user);
     }
 
-    @Override
-    public List<User> getAllVerifiers() {
-        return userRepository.findByRole(User.Role.VERIFIER);
-    }
+//    @Override
+//    public List<User> getAllVerifiers() {
+//        return userRepository.findByRole(User.Role.VERIFIER);
+//    }
 
     @Override
     public void updateUserProfile(User updatedUser) {

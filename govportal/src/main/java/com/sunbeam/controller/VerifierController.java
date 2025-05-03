@@ -52,7 +52,7 @@ public class VerifierController {
 
     @GetMapping("/pending")
     public ResponseEntity<Page<DocumentApplicationResponse>> getPendingApplications(@PageableDefault(size = 20) Pageable pageable) {
-    	System.out.println("Insoide Verification COntrollerr");
+    	
         return ResponseEntity.ok(verificationService.getPendingApplications(pageable));
     }
     

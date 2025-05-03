@@ -1,7 +1,9 @@
 package com.sunbeam.service.impl;
 
 import com.sunbeam.dto.request.DocumentApplicationRequest;
+import com.sunbeam.dto.response.DocumentApplicationDetailsResponse;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
+import com.sunbeam.dto.response.DocumentProofResponse;
 import com.sunbeam.exception.*;
 import com.sunbeam.model.*;
 import com.sunbeam.repository.DocumentApplicationRepository;
@@ -12,11 +14,8 @@ import com.sunbeam.service.AuditService;
 import com.sunbeam.service.DocumentService;
 import com.sunbeam.service.FileStorageService;
 import com.sunbeam.service.PdfGeneratorService;
-import com.sunbeam.service.VerificationWorkflowService;
-
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -45,7 +44,7 @@ public class DocumentServiceImpl implements DocumentService {
 	private final UserRepository userRepository;
 	private final FileStorageService fileStorageService;
 	private final PdfGeneratorService pdfGenerator;
-	private final VerificationWorkflowService workflowService;
+//	private final VerificationWorkflowService workflowService;
 	private final AuditService auditService;
 	private final SecurityUtils securityUtils;
 	private final ModelMapper modelMapper;
@@ -55,7 +54,7 @@ public class DocumentServiceImpl implements DocumentService {
 	private String uploadDir;
 	private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
-
+	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public DocumentApplication submitApplication(User applicant, DocumentApplicationRequest request, List<MultipartFile> files) throws IOException {
 	    logger.info("Starting document application submission for user: {}", applicant.getEmail());
@@ -72,12 +71,7 @@ public class DocumentServiceImpl implements DocumentService {
 	            .build();
 
 	    logger.debug("DocumentApplication entity created: {}", application);
-
-	    // Step 2 - Assign to first verifier
-	    logger.info("Fetching first verifier from database");
-	    User firstVerifier = userRepository.findByEmail("verifier1@example.com")
-	            .orElseThrow(() -> new RuntimeException("First verifier not found"));
-	    application.setAssignedVerifiers(List.of(firstVerifier));
+	    System.out.println("Submission Date : "+ application.getSubmissionDate()); 
 	    application.setCurrentDesk("DESK_1");
 
 	    // Step 3 - Save the Application
@@ -132,17 +126,35 @@ public class DocumentServiceImpl implements DocumentService {
 		DocumentApplication application = documentRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
-		verifyAccessPermissions(application);
 		return modelMapper.map(application, DocumentApplicationResponse.class);
 	}
-
+	
+	
 	@Override
 	@Transactional(readOnly = true)
-	public List<DocumentApplicationResponse> getUserApplications() {
-		User currentUser = securityUtils.getCurrentUser();
-		return documentRepository.findByApplicant(currentUser).stream()
-				.map(app -> modelMapper.map(app, DocumentApplicationResponse.class)).collect(Collectors.toList());
+	public DocumentApplicationDetailsResponse getDocumentApplicationDetails(long id) {
+		
+		return documentRepository.findByIdWithProofs(id) // Use the method that fetches proofs
+                .map(documentApplication -> {
+                    DocumentApplicationDetailsResponse response = modelMapper.map(documentApplication, DocumentApplicationDetailsResponse.class);
+                    List<DocumentProofResponse> documentProofsResponse = documentApplication.getDocumentProofs().stream()
+                            .map(proof -> modelMapper.map(proof, DocumentProofResponse.class))
+                            .collect(Collectors.toList());
+                    response.setDocumentProofs(documentProofsResponse);
+                    return response;
+                })
+                .orElse(null); 
 	}
+
+//	@Override
+//	@Transactional(readOnly = true)
+//	public List<DocumentApplicationResponse> getUserApplications() {
+//		User currentUser = securityUtils.getCurrentUser();
+//		List<DocumentApplication> userApplications = documentRepository.findByApplicant(currentUser);
+//		
+//		return documentRepository.findByApplicant(currentUser).stream()
+//				.map(app -> modelMapper.map(app, DocumentApplicationResponse.class)).collect(Collectors.toList());
+//	}
 
 	@Override
 	@Transactional(readOnly = true)
@@ -167,43 +179,43 @@ public class DocumentServiceImpl implements DocumentService {
 		}
 	}
 
-	@Override
-	@Transactional
-	public DocumentApplicationResponse approveApplication(Long applicationId, String remarks) {
-		DocumentApplication application = documentRepository.findById(applicationId)
-				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+//	@Override
+//	@Transactional
+//	public DocumentApplicationResponse approveApplication(Long applicationId, String remarks) {
+//		DocumentApplication application = documentRepository.findById(applicationId)
+//				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+//
+//		User currentUser = securityUtils.getCurrentUser();
+////		if (!application.getAssignedVerifiers().contains(currentUser)) {
+////			throw new UnauthorizedAccessException("You are not assigned to verify this application");
+////		}
+//
+//		application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
+//		application.setResolvedDate(LocalDateTime.now());
+//		application.setApprovedBy(currentUser);
+//		DocumentApplication savedApp = documentRepository.save(application);
+//
+//		auditService.logDocumentStatusChange(applicationId, "DOCUMENT_APPROVED",
+//				"Approved by " + currentUser.getEmail() + " with remarks: " + remarks);
+//
+//		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
+//	}
 
-		User currentUser = securityUtils.getCurrentUser();
-		if (!application.getAssignedVerifiers().contains(currentUser)) {
-			throw new UnauthorizedAccessException("You are not assigned to verify this application");
-		}
-
-		application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
-		application.setResolvedDate(LocalDateTime.now());
-		application.setApprovedBy(currentUser);
-		DocumentApplication savedApp = documentRepository.save(application);
-
-		auditService.logDocumentStatusChange(applicationId, "DOCUMENT_APPROVED",
-				"Approved by " + currentUser.getEmail() + " with remarks: " + remarks);
-
-		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
-	}
-
-	@Override
-	@Transactional
-	public DocumentApplicationResponse rejectApplication(Long applicationId, String remarks) {
-		DocumentApplication application = documentRepository.findById(applicationId)
-				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
-
-		application.setStatus(DocumentApplication.ApplicationStatus.REJECTED);
-		application.setRejectionReason(remarks);
-		application.setResolvedDate(LocalDateTime.now());
-		DocumentApplication savedApp = documentRepository.save(application);
-
-		auditService.logDocumentStatusChange(applicationId, "DOCUMENT_REJECTED", "Rejected with remarks: " + remarks);
-
-		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
-	}
+//	@Override
+//	@Transactional
+//	public DocumentApplicationResponse rejectApplication(Long applicationId, String remarks) {
+//		DocumentApplication application = documentRepository.findById(applicationId)
+//				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+//
+//		application.setStatus(DocumentApplication.ApplicationStatus.REJECTED);
+//		application.setRejectionReason(remarks);
+//		application.setResolvedDate(LocalDateTime.now());
+//		DocumentApplication savedApp = documentRepository.save(application);
+//
+//		auditService.logDocumentStatusChange(applicationId, "DOCUMENT_REJECTED", "Rejected with remarks: " + remarks);
+//
+//		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
+//	}
 
 	@Override
 	@Transactional
@@ -230,19 +242,19 @@ public class DocumentServiceImpl implements DocumentService {
 		return null;
 	}
 
-	private void verifyAccessPermissions(DocumentApplication application) {
-		User currentUser = securityUtils.getCurrentUser();
+//	private void verifyAccessPermissions(DocumentApplication application) {
+//		User currentUser = securityUtils.getCurrentUser();
+//
+//		if (!application.getApplicant().equals(currentUser) && !application.getAssignedVerifiers().contains(currentUser)
+//				&& !currentUser.getRole().equals(User.Role.ADMIN)) {
+//			throw new UnauthorizedAccessException("You don't have permission to access this application");
+//		}
+//	}
 
-		if (!application.getApplicant().equals(currentUser) && !application.getAssignedVerifiers().contains(currentUser)
-				&& !currentUser.getRole().equals(User.Role.ADMIN)) {
-			throw new UnauthorizedAccessException("You don't have permission to access this application");
-		}
-	}
-
-	@Override
-	public DocumentApplicationResponse reassignApplication(Long applicationId, Long newVerifierId) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@Override
+//	public DocumentApplicationResponse reassignApplication(Long applicationId, Long newVerifierId) {
+//		// TODO Auto-generated method stub
+//		return null;
+//	}
 
 }

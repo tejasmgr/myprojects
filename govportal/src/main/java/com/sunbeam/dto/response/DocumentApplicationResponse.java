@@ -21,7 +21,7 @@ public class DocumentApplicationResponse {
     private DocumentType documentType;
     private ApplicationStatus status;
     private List<String> documentPaths;
-    private LocalDateTime appliedDate;
+    private LocalDateTime submissionDate;
     private LocalDateTime resolvedDate;
     private String rejectionReason;
     private String currentDesk;

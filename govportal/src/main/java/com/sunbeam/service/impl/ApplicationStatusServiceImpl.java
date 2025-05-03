@@ -16,15 +16,15 @@ public class ApplicationStatusServiceImpl implements ApplicationStatusService {
 
     private final DocumentApplicationRepository appRepository;
 
-    @Override
-    public Map<String, Long> getStatusCounts() {
-        return appRepository.getCountByStatus()
-                .stream()
-                .collect(Collectors.toMap(
-                        arr -> ((DocumentApplication.ApplicationStatus) arr[0]).name(),
-                        arr -> (Long) arr[1]
-                ));
-    }
+//    @Override
+//    public Map<String, Long> getStatusCounts() {
+//        return appRepository.getCountByStatus()
+//                .stream()
+//                .collect(Collectors.toMap(
+//                        arr -> ((DocumentApplication.ApplicationStatus) arr[0]).name(),
+//                        arr -> (Long) arr[1]
+//                ));
+//    }
 
     @Override
     public List<DocumentApplication> getRecentApprovals(int count) {
