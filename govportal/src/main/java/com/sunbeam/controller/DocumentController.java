@@ -89,6 +89,8 @@ public class DocumentController {
 		return ResponseEntity.ok(documentService.getAllApplications(pageable));
 	}
 	
+	
+	
 
 	@GetMapping("/{id}")
 	public ResponseEntity<DocumentApplicationResponse> getApplication(@PathVariable Long id) {
