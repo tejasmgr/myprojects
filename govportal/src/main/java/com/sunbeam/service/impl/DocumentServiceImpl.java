@@ -57,10 +57,7 @@ public class DocumentServiceImpl implements DocumentService {
 	@Override
 	@Transactional(rollbackFor = Exception.class)
 	public DocumentApplication submitApplication(User applicant, DocumentApplicationRequest request, List<MultipartFile> files) throws IOException {
-	    logger.info("Starting document application submission for user: {}", applicant.getEmail());
-
-	    // Step 1 - Create DocumentApplication entity
-	    logger.info("Creating DocumentApplication entity from request");
+   
 	    DocumentApplication application = DocumentApplication.builder()
 	            .applicant(applicant)
 	            .documentType(DocumentApplication.DocumentType.fromString(request.getDocumentType()))
@@ -68,27 +65,17 @@ public class DocumentServiceImpl implements DocumentService {
 	            .formData(request.getFormData())
 	            .status(DocumentApplication.ApplicationStatus.PENDING)
 	            .submissionDate(LocalDateTime.now())
-	            .build();
-
-	    logger.debug("DocumentApplication entity created: {}", application);
-	    System.out.println("Submission Date : "+ application.getSubmissionDate()); 
-	    application.setCurrentDesk("DESK_1");
-
-	    // Step 3 - Save the Application
-	    logger.info("Saving initial DocumentApplication to database");
+	            .currentDesk("DESK_1")
+	            .build();    
+//	    application.setCurrentDesk("DESK_1"); 
 	    application = documentRepository.save(application);
-	    logger.info("DocumentApplication saved with ID: {}", application.getId());
-
 	    // Step 4 - Process and save uploaded files
 	    List<DocumentProof> documentProofs = new ArrayList<>();
-	    logger.info("Processing uploaded files, total files received: {}", files.size());
-
 	    try {
 	        for (MultipartFile file : files) {
 	            String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
 	            Path filePath = Paths.get(uploadDir, fileName).toAbsolutePath().normalize();
 	            Files.copy(file.getInputStream(), filePath);
-
 	            DocumentProof documentProof = DocumentProof.builder()
 	                    .application(application)
 	                    .fileName(file.getOriginalFilename())
@@ -96,17 +83,10 @@ public class DocumentServiceImpl implements DocumentService {
 	                    .contentType(file.getContentType())
 	                    .build();
 	            documentProofRepository.save(documentProof);
-	            documentProofs.add(documentProof);
-
-	            logger.info("Stored document: {} at path: {}", file.getOriginalFilename(), filePath.toString());
+	            documentProofs.add(documentProof);     
 	        }
-
 	        application.setDocumentProofs(documentProofs); // Associate documents
-	        logger.debug("Associated {} document proofs with the application", documentProofs.size());
-
-	        logger.info("Saving updated DocumentApplication with document proofs");
 	        documentRepository.save(application);
-
 	    } catch (IOException e) {
 	        logger.error("IOException occurred while storing files: {}", e.getMessage(), e);
 	        throw new FileStorageException("Failed to store document: " + e.getMessage(), e);
@@ -114,9 +94,7 @@ public class DocumentServiceImpl implements DocumentService {
 	        logger.error("Database exception while saving document proofs: {}", e.getMessage(), e);
 	        throw new DatabaseOperationException("Error saving document details to the database", e);
 	    }
-
 	    logger.info("Document application submitted successfully for user: {}", applicant.getEmail());
-	    
 	    return application;
 	}
 
@@ -134,16 +112,33 @@ public class DocumentServiceImpl implements DocumentService {
 	@Transactional(readOnly = true)
 	public DocumentApplicationDetailsResponse getDocumentApplicationDetails(long id) {
 		
-		return documentRepository.findByIdWithProofs(id) // Use the method that fetches proofs
-                .map(documentApplication -> {
-                    DocumentApplicationDetailsResponse response = modelMapper.map(documentApplication, DocumentApplicationDetailsResponse.class);
-                    List<DocumentProofResponse> documentProofsResponse = documentApplication.getDocumentProofs().stream()
-                            .map(proof -> modelMapper.map(proof, DocumentProofResponse.class))
-                            .collect(Collectors.toList());
-                    response.setDocumentProofs(documentProofsResponse);
-                    return response;
-                })
-                .orElse(null); 
+			DocumentApplication application = documentRepository.findById(id)
+					.orElseThrow(() -> new DocumentNotFoundEception("DocumentApplication not found in Database"));
+		
+			List<DocumentProofResponse> proofResponses = application.getDocumentProofs().stream()
+					.map(proof -> DocumentProofResponse.builder()
+							.id(proof.getId())
+							.fileName(proof.getFileName())
+							.contentType(proof.getContentType())
+							.fileUrl(proof.getFilePath())
+							.build())
+					.collect(Collectors.toList());		
+		return DocumentApplicationDetailsResponse.builder()
+				.id(application.getId())
+				.formData(application.getFormData())
+				.documentType(application.getDocumentType())
+				.status(application.getStatus())
+				.purpose(application.getPurpose())
+				.rejectionReason(application.getRejectionReason())
+				.approvedByUserId(application.getApprovedBy()!=null ? application.getApprovedBy().getId() : null)
+				.currentDesk(application.getCurrentDesk())
+				.submissionDate(application.getSubmissionDate())
+				.resolvedDate(application.getResolvedDate())
+				.lastUpdatedDate(application.getLastUpdatedDate())
+				.applicantId(application.getApplicant().getId())
+				.documentProofs(proofResponses)
+				.build();
+				
 	}
 
 //	@Override
@@ -179,82 +174,18 @@ public class DocumentServiceImpl implements DocumentService {
 		}
 	}
 
-//	@Override
-//	@Transactional
-//	public DocumentApplicationResponse approveApplication(Long applicationId, String remarks) {
-//		DocumentApplication application = documentRepository.findById(applicationId)
-//				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
-//
-//		User currentUser = securityUtils.getCurrentUser();
-////		if (!application.getAssignedVerifiers().contains(currentUser)) {
-////			throw new UnauthorizedAccessException("You are not assigned to verify this application");
-////		}
-//
-//		application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
-//		application.setResolvedDate(LocalDateTime.now());
-//		application.setApprovedBy(currentUser);
-//		DocumentApplication savedApp = documentRepository.save(application);
-//
-//		auditService.logDocumentStatusChange(applicationId, "DOCUMENT_APPROVED",
-//				"Approved by " + currentUser.getEmail() + " with remarks: " + remarks);
-//
-//		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
-//	}
 
-//	@Override
-//	@Transactional
-//	public DocumentApplicationResponse rejectApplication(Long applicationId, String remarks) {
-//		DocumentApplication application = documentRepository.findById(applicationId)
-//				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
-//
-//		application.setStatus(DocumentApplication.ApplicationStatus.REJECTED);
-//		application.setRejectionReason(remarks);
-//		application.setResolvedDate(LocalDateTime.now());
-//		DocumentApplication savedApp = documentRepository.save(application);
-//
-//		auditService.logDocumentStatusChange(applicationId, "DOCUMENT_REJECTED", "Rejected with remarks: " + remarks);
-//
-//		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
-//	}
+
+
+
+
 
 	@Override
-	@Transactional
-	public String uploadSupportingDocument(Long applicationId, MultipartFile file) {
-//		DocumentApplication application = documentRepository.findById(applicationId)
-//				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
-//
-//		if (application.getStatus() != DocumentApplication.ApplicationStatus.PENDING) {
-//			throw new IllegalStateException("Cannot add documents to processed applications");
-//		}
-//
-//		try {
-//			String filePath = fileStorageService.storeFile(file);
-//			application.getDocumentPaths().add(filePath);
-//			documentRepository.save(application);
-//
-//			auditService.logActivity("DOCUMENT_UPLOAD", "Added supporting document to application " + applicationId);
-//
-//			return filePath;
-//		} catch (IOException e) {
-//			throw new FileStorageException("Failed to store document: " + e.getMessage());
-//		}
-
-		return null;
+	public DocumentProof getDocumentProof(Long proofId) {
+		
+		return documentProofRepository.getById(proofId);
 	}
 
-//	private void verifyAccessPermissions(DocumentApplication application) {
-//		User currentUser = securityUtils.getCurrentUser();
-//
-//		if (!application.getApplicant().equals(currentUser) && !application.getAssignedVerifiers().contains(currentUser)
-//				&& !currentUser.getRole().equals(User.Role.ADMIN)) {
-//			throw new UnauthorizedAccessException("You don't have permission to access this application");
-//		}
-//	}
 
-//	@Override
-//	public DocumentApplicationResponse reassignApplication(Long applicationId, Long newVerifierId) {
-//		// TODO Auto-generated method stub
-//		return null;
-//	}
 
 }

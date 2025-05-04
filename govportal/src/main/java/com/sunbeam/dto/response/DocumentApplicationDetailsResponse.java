@@ -2,12 +2,21 @@ package com.sunbeam.dto.response;
 
 import com.sunbeam.model.DocumentApplication.ApplicationStatus;
 import com.sunbeam.model.DocumentApplication.DocumentType;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
 public class DocumentApplicationDetailsResponse {
     private Long id;
     private String formData;
