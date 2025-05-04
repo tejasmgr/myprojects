@@ -22,6 +22,7 @@ public interface VerificationService {
     VerificationStatsResponse getVerificationStats();
 //    DocumentApplicationResponse escalateToSeniorVerifier(Long applicationId, String reason);
     Page<DocumentApplicationResponse>  getPendingApplications(Pageable pageable);
+	ResponseEntity<Page<DocumentApplicationResponse>> getApprovedApplicationsByVerifier(Pageable pageable, long verifierId);
 	
 	
     
