@@ -40,23 +40,24 @@ public class VerificationServiceImpl implements VerificationService {
 
 	@Override
 	public ResponseEntity<DocumentApplicationResponse> getDocumentApplicationById(Long id) {
-		DocumentApplication application = documentRepository.getById(id);
+		DocumentApplication application = documentRepository.findById(id).orElseThrow(() -> new RuntimeException("DocumentApplication not found with id: " + id));
 	    DocumentApplicationResponse dto = modelMapper.map(application, DocumentApplicationResponse.class);
 	    return ResponseEntity.ok(dto);
 	}
-
+	
 	@Override
 	public Page<DocumentApplicationResponse> getPendingApplications(Pageable pageable) {
 		User verifier = securityUtils.getCurrentUser();
 		Page<DocumentApplication> applicationsList = null;
-
+		System.out.println("Inside Sevice of pending APplicationswith user name "+verifier.getFullName());
 		if (verifier.getDesignation() == User.Designation.JUNIOR_VERIFIER) {
+			System.out.println("in branch of junior verifier ");
 			applicationsList = documentRepository.findByCurrentDesk("DESK_1", pageable);
 		} else if (verifier.getDesignation() == User.Designation.SENIOR_VERIFIER) {
 			applicationsList = documentRepository.findByCurrentDesk("DESK_2", pageable);
+			System.out.println("in branch of senior verifier verifier ");
 		} else {
 			throw new UnsupportedOperationException("Invalid ApplicationStatus for assignment of Verifier");
-
 		}
 		return applicationsList.map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
 	}
@@ -65,22 +66,23 @@ public class VerificationServiceImpl implements VerificationService {
 	@Transactional
 	public DocumentApplicationResponse approveApplication(Long applicationId, String remarks) {
 		DocumentApplication application = getApplicationById(applicationId);
-		User currentUser = securityUtils.getCurrentUser();
-		if (currentUser.getDesignation() == User.Designation.JUNIOR_VERIFIER
-				&& application.getCurrentDesk() == "DESK_1") {
+		User verifier = securityUtils.getCurrentUser();
+		if (verifier.getDesignation() == User.Designation.JUNIOR_VERIFIER
+				&& application.getCurrentDesk().equals("DESK_1")) {
 			application.setCurrentDesk("DESK_2");
 			application.setStatus(DocumentApplication.ApplicationStatus.UNDER_REVIEW);
-		} else if (currentUser.getDesignation() == User.Designation.SENIOR_VERIFIER
-				&& application.getCurrentDesk() == "DESK_2") {
+			
+		} else if (verifier.getDesignation() == User.Designation.SENIOR_VERIFIER
+				&& application.getCurrentDesk().equals("DESK_2")) {
 			application.setCurrentDesk("UNDER_CERTIFICATE_GENERATION");
 			application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
 		}
 		application.setResolvedDate(LocalDateTime.now());
-		application.setApprovedBy(currentUser);
+		application.setApprovedBy(verifier);
 		DocumentApplication reviewedApplication = documentRepository.save(application);
-
+		
 		auditService.logActivity("DOCUMENT_APPROVED", String.format("Application %d approved by %s. Remarks: %s",
-				applicationId, currentUser.getEmail(), remarks));
+				applicationId, verifier.getEmail(), remarks));
 		return modelMapper.map(reviewedApplication, DocumentApplicationResponse.class);
 	}
 
@@ -116,17 +118,6 @@ public class VerificationServiceImpl implements VerificationService {
 		return modelMapper.map(savedApp, DocumentApplicationResponse.class);
 	}
 
-//    @Override
-//    @Transactional(readOnly = true)
-//    public Page<DocumentApplicationResponse> getAssignedApplications(int page, int size) {
-//    	User currentUser = securityUtils.getCurrentUser();
-//    	PageRequest pageable = PageRequest.of(page, size, Sort.by("submissionDate").descending());
-//    	Page<DocumentApplication> applicationPage = documentRepository.findByAssignedVerifiersContaining(currentUser, pageable);
-//    	
-//    	return applicationPage.map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
-//        
-//                
-//    }
 
 	@Override
 	@Transactional(readOnly = true)
@@ -149,6 +140,18 @@ public class VerificationServiceImpl implements VerificationService {
 	private DocumentApplication getApplicationById(Long id) {
 		return documentRepository.findById(id)
 				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+	}
+
+	@Override
+	public ResponseEntity<Page<DocumentApplicationResponse>> getApprovedApplicationsByVerifier(Pageable pageable,
+			long verifierId) {
+		User verifier = userRepository.findById(verifierId)
+	            .orElseThrow(() -> new UserNotFoundException("Verifier not found with id: " + verifierId));
+	    Page<DocumentApplication> applicationsPage = documentRepository.findByApprovedBy(verifier, pageable);
+	    Page<DocumentApplicationResponse> responsePage = applicationsPage.map(application ->
+	            modelMapper.map(application, DocumentApplicationResponse.class)
+	    );
+	    return ResponseEntity.ok(responsePage);
 	}
 
 	
