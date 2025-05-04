@@ -21,11 +21,12 @@ public interface DocumentApplicationRepository extends JpaRepository<DocumentApp
     long countByStatus(ApplicationStatus status);
     long count();
     long countByCurrentDesk(String deskLevel);
-    DocumentApplication findById(long id);
+    Optional<DocumentApplication>	 findById(long id);
     
     @Query("SELECT da FROM DocumentApplication da LEFT JOIN FETCH da.documentProofs WHERE da.id = :applicationId")
     Optional<DocumentApplication> findByIdWithProofs(@Param("applicationId") Long applicationId);
-
+    
+    Page<DocumentApplication> findByApprovedBy(User verifier, Pageable pageable);
 
     @Query("SELECT da FROM DocumentApplication da WHERE da.status = :status ORDER BY da.resolvedDate DESC")
     List<DocumentApplication> findTopNByStatusOrderByResolvedDateDesc(@Param("status") ApplicationStatus status, org.springframework.data.domain.Pageable pageable);
@@ -39,7 +40,7 @@ public interface DocumentApplicationRepository extends JpaRepository<DocumentApp
             @Param("status") ApplicationStatus status
     );
 
-    List<DocumentApplication> findByApprovedBy(User user);
+//    List<DocumentApplication> findByApprovedBy(User user);
 
     @Query("SELECT da FROM DocumentApplication da WHERE da.approvedBy.id = :userId")
     List<DocumentApplication> findApprovedByUserId(@Param("userId") Long userId);

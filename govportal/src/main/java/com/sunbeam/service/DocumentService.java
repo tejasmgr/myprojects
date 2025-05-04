@@ -4,6 +4,7 @@ import com.sunbeam.dto.request.DocumentApplicationRequest;
 import com.sunbeam.dto.response.DocumentApplicationDetailsResponse;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.model.DocumentApplication;
+import com.sunbeam.model.DocumentProof;
 import com.sunbeam.model.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -31,5 +32,7 @@ public interface DocumentService {
 
 //	DocumentApplicationResponse reassignApplication(Long applicationId, Long newVerifierId);
 
-	String uploadSupportingDocument(Long applicationId, MultipartFile file);
+//	String uploadSupportingDocument(Long applicationId, MultipartFile file);
+
+	DocumentProof getDocumentProof(Long proofId);
 }
