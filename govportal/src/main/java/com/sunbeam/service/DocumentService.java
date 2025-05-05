@@ -24,7 +24,7 @@ public interface DocumentService {
 
 	Page<DocumentApplicationResponse> getAllApplications(Pageable pageable);
 
-	byte[] generateCertificatePdf(Long applicationId);
+	byte[] getCertificatePdf(Long applicationId);
 
 //	DocumentApplicationResponse approveApplication(Long applicationId, String remarks);
 

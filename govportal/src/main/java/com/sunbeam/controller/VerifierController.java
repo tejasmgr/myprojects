@@ -73,7 +73,6 @@ public class VerifierController {
 		} catch (MalformedURLException e) {
 			return ResponseEntity.notFound().build();
 		}
-		
 		if (resource.exists()) {
 			return ResponseEntity.ok().contentType(MediaType.parseMediaType(proof.getContentType()))
 					.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\""+proof.getFileName()+ "\"")
