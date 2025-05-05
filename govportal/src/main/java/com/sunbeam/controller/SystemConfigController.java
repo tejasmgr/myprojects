@@ -16,7 +16,7 @@ public class SystemConfigController {
 
     private final SystemConfigService configService;
 
-    @GetMapping
+    @GetMapping("/logs")
     public ResponseEntity<Map<String, String>> getAllConfigs() {
         return ResponseEntity.ok(configService.getAllConfigs());
     }

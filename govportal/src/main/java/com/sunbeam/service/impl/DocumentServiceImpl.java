@@ -159,19 +159,20 @@ public class DocumentServiceImpl implements DocumentService {
 
 	@Override
 	@Transactional
-	public byte[] generateCertificatePdf(Long applicationId) {
+	public byte[] getCertificatePdf(Long applicationId) {
 		DocumentApplication application = documentRepository.findById(applicationId)
 				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
 
 		if (application.getStatus() != DocumentApplication.ApplicationStatus.APPROVED) {
 			throw new IllegalStateException("Only approved applications can generate certificates");
 		}
+		return application.getCertificatePdf();
 
-		try {
-			return pdfGenerator.generateCertificate(application);
-		} catch (IOException e) {
-			throw new PdfGenerationException("Failed to generate PDF certificate");
-		}
+//		try {
+//			return pdfGenerator.generateCertificate(application);
+//		} catch (IOException e) {
+//			throw new PdfGenerationException("Failed to generate PDF certificate");
+//		}
 	}
 
 

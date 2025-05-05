@@ -99,7 +99,7 @@ public class DocumentController {
 
 	@GetMapping("/{id}/download")
 	public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id) {
-		byte[] pdfBytes = documentService.generateCertificatePdf(id);
+		byte[] pdfBytes = documentService.getCertificatePdf(id);
 		return ResponseEntity.ok().header("Content-Type", "application/pdf")
 				.header("Content-Disposition", "attachment; filename=\"certificate.pdf\"").body(pdfBytes);
 	}

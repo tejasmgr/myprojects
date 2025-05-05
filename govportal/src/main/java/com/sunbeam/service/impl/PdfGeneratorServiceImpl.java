@@ -30,6 +30,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
     public byte[] generateCertificate(DocumentApplication application) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfDocument pdf = new PdfDocument(new PdfWriter(baos));
+        
         Document document = new Document(pdf);
 
         // Fonts

@@ -23,6 +23,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -80,7 +81,15 @@ public class VerificationServiceImpl implements VerificationService {
 		application.setResolvedDate(LocalDateTime.now());
 		application.setApprovedBy(verifier);
 		DocumentApplication reviewedApplication = documentRepository.save(application);
-		
+		if (application.getCurrentDesk().equals("UNDER_CERTIFICATE_GENERATION")) {
+			try {
+			    byte[] pdf = pdfService.generateCertificate(reviewedApplication);
+			    application.setCertificatePdf(pdf); // if you decide to save it
+			} catch (IOException e) {
+			    auditService.logActivity("PDF_GENERATION_FAILED", "Failed for Application " + applicationId);
+			    throw new RuntimeException("Failed to generate certificate PDF", e);
+			}
+		}
 		auditService.logActivity("DOCUMENT_APPROVED", String.format("Application %d approved by %s. Remarks: %s",
 				applicationId, verifier.getEmail(), remarks));
 		return modelMapper.map(reviewedApplication, DocumentApplicationResponse.class);

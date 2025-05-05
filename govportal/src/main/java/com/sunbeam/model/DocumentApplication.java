@@ -69,8 +69,12 @@ public class DocumentApplication {
 
 	private LocalDateTime resolvedDate;
 
+	@Lob
+	@Column(name = "certificate_pdf", columnDefinition = "LONGBLOB")
+	private byte[] certificatePdf;
+	
 	public enum DocumentType {
-		INCOME_CERTIFICATE, CASTE_CERTIFICATE, DOMICILE_CERTIFICATE, BIRTH_CERTIFICATE;
+		INCOME, CASTE, DOMICILE, BIRTH;
 
 		public static DocumentType fromString(String text) {
 			try {
@@ -84,5 +88,6 @@ public class DocumentApplication {
 	public enum ApplicationStatus {
 		PENDING, UNDER_REVIEW, APPROVED, REJECTED, REAPPLIED, CHANGES_REQUESTED
 	}
+	
 
 }

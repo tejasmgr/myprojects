@@ -39,7 +39,8 @@ public interface DocumentApplicationRepository extends JpaRepository<DocumentApp
             @Param("documentType") DocumentType documentType,
             @Param("status") ApplicationStatus status
     );
-
+    
+    
 //    List<DocumentApplication> findByApprovedBy(User user);
 
     @Query("SELECT da FROM DocumentApplication da WHERE da.approvedBy.id = :userId")
