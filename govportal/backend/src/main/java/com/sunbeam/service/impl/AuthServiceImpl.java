@@ -13,6 +13,8 @@ import com.sunbeam.service.TokenService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -38,18 +40,19 @@ public class AuthServiceImpl implements AuthService {
     private final EmailService emailService;
     private final TokenService tokenService;
     private final TokenRepository tokenRepository;
+    private final Logger logger = LoggerFactory.getLogger(AuthServiceImpl.class);
 
     @Override
     @Transactional
     public AuthResponse registerUser(RegisterRequest request) {
-        if(userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already registered");
+       if(userRepository.existsByEmail(request.getEmail())) {
+            throw new EmailAlreadyExistsException("Email already registered: "+request.getEmail());
         }
-        
         User user = modelMapper.map(request, User.class);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setEnabled(false);
         user.setRole(User.Role.CITIZEN);
+        
         User savedUser = userRepository.save(user);
 
         String verificationToken = UUID.randomUUID().toString();
@@ -67,35 +70,46 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse authenticateUser(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        User user = userDetails.getUser();
-        if(!userDetails.isEnabled()) throw new AccountDisabledException("Account not verified");
-        if(userDetails.isBlocked()) throw new AccountBlockedException("Account blocked");
-        // Add roles to the JWT claims
-        Map<String, Object> extraClaims = new HashMap<>();
-        extraClaims.put("roles", List.of(user.getRole().name()));
+        try {
+        	Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = userDetails.getUser();
+            
+            if(!userDetails.isEnabled()) throw new AccountDisabledException("Account not verified");
+            if(userDetails.isBlocked()) throw new AccountBlockedException("Account blocked");
+            
+            // Add roles to the JWT claims
+            Map<String, Object> extraClaims = new HashMap<>();
+            extraClaims.put("roles", List.of(user.getRole().name()));
 
-        return AuthResponse.builder()
-                .accessToken(jwtUtil.generateToken(extraClaims, userDetails))
-                .user(user)
-                .build();
+            return AuthResponse.builder()
+                    .accessToken(jwtUtil.generateToken(extraClaims, userDetails))
+                    .user(user)
+                    .build();
+		} catch (BadCredentialsException e) {
+			throw new BadCredentialsException("Invalid Username or Password");
+		}catch (AccountDisabledException e) {
+			throw new AccountDisabledException("Account not verified");
+		}catch (AccountBlockedException e) {
+			throw new AccountBlockedException("Account is blocked");
+		}
     }
 
     @Override
     public void initiatePasswordReset(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with email : "+ email));
         
         String resetToken = UUID.randomUUID().toString();
         tokenService.createPasswordResetToken(user, resetToken);
         emailService.sendPasswordResetEmail(email, resetToken);
+        logger.info("Password reset initiated for user: {}", email);
     }
 
     @Override
@@ -105,6 +119,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new InvalidTokenException("Invalid token"));
         
         if(resetToken.getExpiryDate().isBefore(LocalDateTime.now())) {
+        	tokenRepository.delete(resetToken);
             throw new TokenExpiredException("Token expired");
         }
         
@@ -112,6 +127,7 @@ public class AuthServiceImpl implements AuthService {
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         tokenRepository.delete(resetToken);
+        logger.info("Password reset completed for user: {}", user.getEmail());
     }
 
     @Override
@@ -124,5 +140,7 @@ public class AuthServiceImpl implements AuthService {
         user.setEnabled(true);
         userRepository.save(user);
         tokenRepository.delete(verificationToken);
+        
+        logger.info("Email verified for user: {}", user.getEmail());
     }
 }

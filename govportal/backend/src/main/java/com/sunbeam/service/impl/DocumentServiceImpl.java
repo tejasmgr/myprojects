@@ -56,8 +56,8 @@ public class DocumentServiceImpl implements DocumentService {
 
 	@Override
 	@Transactional(rollbackFor = Exception.class)
-	public DocumentApplication submitApplication(User applicant, DocumentApplicationRequest request, List<MultipartFile> files) throws IOException {
-   
+	public DocumentApplication submitApplication(User applicant, DocumentApplicationRequest request, List<MultipartFile> files)  {
+		
 	    DocumentApplication application = DocumentApplication.builder()
 	            .applicant(applicant)
 	            .documentType(DocumentApplication.DocumentType.fromString(request.getDocumentType()))
@@ -85,33 +85,76 @@ public class DocumentServiceImpl implements DocumentService {
 	            documentProofRepository.save(documentProof);
 	            documentProofs.add(documentProof);     
 	        }
+	        
 	        application.setDocumentProofs(documentProofs); // Associate documents
 	        documentRepository.save(application);
+	        logger.info("Document application submitted successfully for user: {}", applicant.getEmail());
+		    return application;
+	        
 	    } catch (IOException e) {
 	        logger.error("IOException occurred while storing files: {}", e.getMessage(), e);
 	        throw new FileStorageException("Failed to store document: " + e.getMessage(), e);
-	    } catch (org.springframework.dao.DataAccessException e) {
-	        logger.error("Database exception while saving document proofs: {}", e.getMessage(), e);
-	        throw new DatabaseOperationException("Error saving document details to the database", e);
-	    }
-	    logger.info("Document application submitted successfully for user: {}", applicant.getEmail());
-	    return application;
+	    }catch (DatabaseOperationException e) {
+			throw new DatabaseOperationException("DataBase Operation Failed : ");
+		}catch (FileStorageException e) {
+			throw new FileStorageException("Error storing uploaded files. Please try again.");
+		}catch (InvalidDocumentTypeException e) {
+			throw new InvalidDocumentTypeException("Invalid Document Type" );
+		}catch (Exception e) {
+			logger.error("Unexpected error submitting application: {}", e.getMessage(), e);
+            throw new DatabaseOperationException("Failed to submit the application. Please try again.");
+		}
+	}
+	
+	@Override
+	@Transactional(readOnly = true)
+	public Page<DocumentApplicationResponse> getAllApplications(Pageable pageable) {
+		try {
+			return documentRepository.findAll(pageable).map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
+		} catch (DatabaseOperationException e) {
+			logger.error("Error fetching all applications: {}", e.getMessage(), e);
+			throw new DatabaseOperationException("Unable to Fetch Applications : "+ e.getMessage());
+		}
 	}
 
 	@Override
 	@Transactional(readOnly = true)
 	public DocumentApplicationResponse getApplicationById(Long id) {
-		DocumentApplication application = documentRepository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+		try {
+			DocumentApplication application = documentRepository.findById(id)
+					.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
+			return modelMapper.map(application, DocumentApplicationResponse.class);
+		} catch (Exception e) {
+			logger.error("Error fetching application by id {}: {}", id, e.getMessage(), e);
+            throw new DatabaseOperationException("Failed to fetch application.");
+		}
+	}
+	
+	@Override
+	@Transactional
+	public byte[] getCertificatePdf(Long applicationId) {
+		try {
+			DocumentApplication application = documentRepository.findById(applicationId)
+					.orElseThrow(() -> new ResourceNotFoundException("Application not found with ID : " + applicationId ));
 
-		return modelMapper.map(application, DocumentApplicationResponse.class);
+			if (application.getStatus() != DocumentApplication.ApplicationStatus.APPROVED) {
+				throw new IllegalStateException("Certificate can only be downloaded for approved applications.");
+			}
+			return application.getCertificatePdf();
+		} catch (ResourceNotFoundException | IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Error generating certificate PDF for application id {}: {}", applicationId, e.getMessage(), e);
+            throw new DatabaseOperationException("Failed to generate certificate PDF.");
+        }
+
 	}
 	
 	
 	@Override
 	@Transactional(readOnly = true)
 	public DocumentApplicationDetailsResponse getDocumentApplicationDetails(long id) {
-		
+	
 			DocumentApplication application = documentRepository.findById(id)
 					.orElseThrow(() -> new DocumentNotFoundEception("DocumentApplication not found in Database"));
 		
@@ -140,46 +183,6 @@ public class DocumentServiceImpl implements DocumentService {
 				.build();
 				
 	}
-
-//	@Override
-//	@Transactional(readOnly = true)
-//	public List<DocumentApplicationResponse> getUserApplications() {
-//		User currentUser = securityUtils.getCurrentUser();
-//		List<DocumentApplication> userApplications = documentRepository.findByApplicant(currentUser);
-//		
-//		return documentRepository.findByApplicant(currentUser).stream()
-//				.map(app -> modelMapper.map(app, DocumentApplicationResponse.class)).collect(Collectors.toList());
-//	}
-
-	@Override
-	@Transactional(readOnly = true)
-	public Page<DocumentApplicationResponse> getAllApplications(Pageable pageable) {
-		return documentRepository.findAll(pageable).map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
-	}
-
-	@Override
-	@Transactional
-	public byte[] getCertificatePdf(Long applicationId) {
-		DocumentApplication application = documentRepository.findById(applicationId)
-				.orElseThrow(() -> new ResourceNotFoundException("Application not found"));
-
-		if (application.getStatus() != DocumentApplication.ApplicationStatus.APPROVED) {
-			throw new IllegalStateException("Only approved applications can generate certificates");
-		}
-		return application.getCertificatePdf();
-
-//		try {
-//			return pdfGenerator.generateCertificate(application);
-//		} catch (IOException e) {
-//			throw new PdfGenerationException("Failed to generate PDF certificate");
-//		}
-	}
-
-
-
-
-
-
 
 	@Override
 	public DocumentProof getDocumentProof(Long proofId) {

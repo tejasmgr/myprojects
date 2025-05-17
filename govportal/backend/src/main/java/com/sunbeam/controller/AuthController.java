@@ -11,6 +11,14 @@ import com.sunbeam.dto.request.LoginRequest;
 import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.request.ResetPasswordRequest;
 import com.sunbeam.dto.response.AuthResponse;
+import com.sunbeam.exception.AccountBlockedException;
+import com.sunbeam.exception.AccountDisabledException;
+import com.sunbeam.exception.BadCredentialsException;
+import com.sunbeam.exception.DatabaseOperationException;
+import com.sunbeam.exception.EmailAlreadyExistsException;
+import com.sunbeam.exception.InvalidTokenException;
+import com.sunbeam.exception.TokenExpiredException;
+import com.sunbeam.exception.UserNotFoundException;
 import com.sunbeam.service.AuthService;
 
 
@@ -24,19 +32,42 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
-        return new ResponseEntity<>(authService.registerUser(request), HttpStatus.CREATED);
+    	try {
+    		return new ResponseEntity<>(authService.registerUser(request), HttpStatus.CREATED);
+		} catch (EmailAlreadyExistsException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+	    }
+    	catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+        
     }
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest request) {
-    	System.out.println("User is being Autheorized");
-        return ResponseEntity.ok(authService.authenticateUser(request));
+    	try {
+            return ResponseEntity.ok(authService.authenticateUser (request));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
+        } catch (AccountDisabledException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        } catch (AccountBlockedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
-        authService.initiatePasswordReset(email);
-        return ResponseEntity.ok("Password reset link sent to your registered email");
+    	try {
+            authService.initiatePasswordReset(email);
+            return ResponseEntity.ok("Password reset link sent to your registered email");
+        } catch (UserNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User  not found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
     }
 
     @PostMapping("/reset-password")
@@ -44,13 +75,27 @@ public class AuthController {
             @RequestParam String token,
             @Valid @RequestBody ResetPasswordRequest request
     ) {
-        authService.completePasswordReset(token, request);
-        return ResponseEntity.ok("Password reset successfully");
+    	try {
+            authService.completePasswordReset(token, request);
+            return ResponseEntity.ok("Password reset successfully");
+        } catch (InvalidTokenException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+        } catch (TokenExpiredException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Token expired");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
     }
 
     @GetMapping("/verify-email")
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
-        authService.verifyEmail(token);
-        return ResponseEntity.ok("Email verified successfully");
+    	try {
+            authService.verifyEmail(token);
+            return ResponseEntity.ok("Email verified successfully");
+        } catch (InvalidTokenException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid token");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
+        }
     }
 }
