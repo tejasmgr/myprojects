@@ -5,6 +5,9 @@ import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.response.AdminStatsResponse;
 import com.sunbeam.dto.response.AuthResponse;
 import com.sunbeam.dto.response.UserResponse;
+import com.sunbeam.exception.DatabaseOperationException;
+import com.sunbeam.exception.EmailAlreadyExistsException;
+import com.sunbeam.exception.UserNotFoundException;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.User;
 import com.sunbeam.service.AdminService;
@@ -34,19 +37,37 @@ public class AdminController {
     public ResponseEntity<UserResponse> createVerifier(
             @Valid @RequestBody CreateVerifierRequest request
     ) {
-    	System.out.println("inside admin Controller");
-        return ResponseEntity.ok(adminService.createVerifierAccount(request));
+    	try {
+    		 return ResponseEntity.ok(adminService.createVerifierAccount(request));
+		}
+    	catch (EmailAlreadyExistsException e) {
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+	    }
+    	catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
     }
     
     @GetMapping("/verifiers")
     public ResponseEntity<Page<UserResponse>> getAllVerifiers(@PageableDefault(size = 20) Pageable pageable){
-    	 return ResponseEntity.ok(adminService.getAllVerifiers(pageable));
+    	try {
+    		return ResponseEntity.ok(adminService.getAllVerifiers(pageable));
+		} catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+    	
     }
     
     @DeleteMapping("/delete-verifier/{id}")
     public ResponseEntity<Void> deleteVerifier(@PathVariable Long id) {
-        adminService.deleteVerifierAccount(id);
-        return ResponseEntity.noContent().build();
+        try {
+        	adminService.deleteVerifierAccount(id);
+            return ResponseEntity.noContent().build();
+		} catch (UserNotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+		}catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
     }
 
     @PutMapping("/block-user/{userId}")
@@ -54,25 +75,44 @@ public class AdminController {
             @PathVariable Long userId,
             @RequestParam boolean block
     ) {
-        return ResponseEntity.ok(adminService.toggleUserBlockStatus(userId, block));
+    	try {
+    		return ResponseEntity.ok(adminService.toggleUserBlockStatus(userId, block));
+		}catch (UserNotFoundException e) {
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+		}catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
     }
 
     @GetMapping("/citizens")
     public ResponseEntity<Page<UserResponse>> getAllCitizens(
             @PageableDefault(size = 20) Pageable pageable
     ) {
-        return ResponseEntity.ok(adminService.getAllCitizens(pageable));
+    	try {
+    		return ResponseEntity.ok(adminService.getAllCitizens(pageable));
+		} catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+        
     }
 
     @GetMapping("/stats")
     public ResponseEntity<AdminStatsResponse> getSystemStats() {
-        return ResponseEntity.ok(adminService.getSystemStatistics());
+        try {
+        	return ResponseEntity.ok(adminService.getSystemStatistics());
+		} catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
     }
 
     @GetMapping("/applications")
     public ResponseEntity<List<DocumentApplication>> getAllApplications(
             @RequestParam(required = false) String status
     ) {
-        return ResponseEntity.ok(adminService.getAllApplications(status));
+        try {
+        	return ResponseEntity.ok(adminService.getAllApplications(status));
+		} catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
     }
 }

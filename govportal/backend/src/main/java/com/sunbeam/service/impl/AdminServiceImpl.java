@@ -11,6 +11,8 @@ import com.sunbeam.repository.UserRepository;
 import com.sunbeam.service.AdminService;
 import lombok.RequiredArgsConstructor;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,17 +29,15 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final DocumentApplicationRepository appRepository;
     private final PasswordEncoder passwordEncoder;
-  
+    private static final Logger logger = LoggerFactory.getLogger(AdminServiceImpl.class);
+    
     
     @Override
     @Transactional
     public UserResponse createVerifierAccount(CreateVerifierRequest request) {
-    	System.out.println("Insode Admin Service");
-    	
         if(userRepository.existsByEmail(request.getEmail())) {
-            throw new EmailAlreadyExistsException("Email already registered");
+            throw new EmailAlreadyExistsException("Email already registered : "+ request.getEmail());
         }
-        
         Designation designation = Designation.valueOf(request.getDesignation().toUpperCase());
         User verifier = User.builder()
                 .firstName(request.getFullName().split(" ")[0])
@@ -51,8 +51,7 @@ public class AdminServiceImpl implements AdminService {
 //        verifier.setEnabled(true);
         System.out.println("Designation : "+ verifier.getDesignation()+ "Enabled : "+ verifier.isEnabled());
         User savedUser = userRepository.save(verifier);
-//       System.out.println("Enabled Status of Persisted Entity"+savedUser.isEnabled());
-        
+//       System.out.println("Enabled Status of Persisted Entity"+savedUser.isEnabled()); 
         return mapToUserResponse(savedUser);
     }
     
@@ -67,28 +66,35 @@ public class AdminServiceImpl implements AdminService {
     public void deleteVerifierAccount(Long verifierId) {
     	System.out.println("insode service layer");
         User verifier = userRepository.findById(verifierId)
-                .orElseThrow(() -> new UserNotFoundException("Verifier not found"));
+                .orElseThrow(() -> new UserNotFoundException("Verifier not found with ID : "+ verifierId));
         
         if(verifier.getRole() != User.Role.VERIFIER) {
-            throw new IllegalArgumentException("User is not a verifier");
+            throw new IllegalArgumentException("User is not a verifier" + verifierId);
         }       
         userRepository.delete(verifier);
+        logger.info("Deleted verifier account with ID: {}", verifierId);
     }
     
     @Override
     public Page<UserResponse> getAllCitizens(Pageable pageable) {
-        Page<User> citizens = userRepository.findByRole(User.Role.CITIZEN, pageable);
-        return citizens.map(this::mapToUserResponse);
+       try {
+       Page<User> citizens = userRepository.findByRole(User.Role.CITIZEN, pageable);
+        return citizens.map(this::mapToUserResponse);}
+       catch (Exception e) {
+    	   logger.error("Error fetching citizens: {}", e.getMessage());
+    	   throw new DatabaseOperationException("Error fetching citizens", e);
+	}
     }
 
     @Override
     @Transactional
     public UserResponse toggleUserBlockStatus(Long userId, boolean block) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
-        
+                .orElseThrow(() -> new UserNotFoundException("User not found with Id : "+userId));
+      
         user.setBlocked(block);
         User updatedUser = userRepository.save(user);
+        logger.info("User  block status changed for ID: {} to {}", userId, block);
         return mapToUserResponse(updatedUser);
     }
 
@@ -96,13 +102,20 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public AdminStatsResponse getSystemStatistics() {
-        return AdminStatsResponse.builder()
+    	try {return AdminStatsResponse.builder()
                 .totalCitizens(userRepository.countByRole(User.Role.CITIZEN))
                 .activeVerifiers(userRepository.countByRoleAndEnabledTrue(User.Role.VERIFIER))
                 .pendingApplications(appRepository.countByStatus(DocumentApplication.ApplicationStatus.PENDING))
                 .approvedApplications(appRepository.countByStatus(DocumentApplication.ApplicationStatus.APPROVED))
                 .blockedAccounts(userRepository.countByBlockedTrue())
                 .build();
+			
+		} catch (Exception e) {
+			logger.error("Error fetching system statistics: {}", e.getMessage());
+			throw new DatabaseOperationException("Error fetching System Statistics",e);
+			
+		}
+        
     }
 
     @Override

@@ -3,6 +3,10 @@ package com.sunbeam.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunbeam.dto.request.DocumentApplicationRequest;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
+import com.sunbeam.exception.DatabaseOperationException;
+import com.sunbeam.exception.FileStorageException;
+import com.sunbeam.exception.InvalidDocumentTypeException;
+import com.sunbeam.exception.ResourceNotFoundException;
 import com.sunbeam.model.CustomUserDetails;
 import com.sunbeam.model.DocumentApplication.DocumentType;
 import com.sunbeam.model.User;
@@ -61,15 +65,15 @@ public class DocumentController {
 		}
 		catch (jakarta.validation.ConstraintViolationException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Validation error: " + e.getMessage());
-		} catch (com.sunbeam.exception.InvalidDocumentTypeException e) {
+		} catch (InvalidDocumentTypeException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		} catch (IOException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("Failed to upload documents: " + e.getMessage());
-		} catch (com.sunbeam.exception.FileStorageException e) { // Catch your custom exception
+		} catch (FileStorageException e) { // Catch your custom exception
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
 					.body("File storage error: " + e.getMessage());
-		} catch (com.sunbeam.exception.DatabaseOperationException e) { // Catch your custom exception
+		} catch (DatabaseOperationException e) { // Catch your custom exception
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Database error: " + e.getMessage());
 		} catch (Exception e) {
 		    logger.error("Unexpected error in submitDocumentApplication", e);
@@ -86,7 +90,14 @@ public class DocumentController {
 	
 	@GetMapping("/applications")
 	public ResponseEntity<Page<DocumentApplicationResponse>> getAllApplications(@PageableDefault(size = 20) Pageable pageable) {
-		return ResponseEntity.ok(documentService.getAllApplications(pageable));
+		try {
+			return ResponseEntity.ok(documentService.getAllApplications(pageable));
+		} catch (DatabaseOperationException e) { // Catch your custom exception
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}catch (Exception e) {
+			logger.error("Unexpected error while fetching applications", e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
 	}
 	
 	
@@ -94,13 +105,31 @@ public class DocumentController {
 
 	@GetMapping("/{id}")
 	public ResponseEntity<DocumentApplicationResponse> getApplication(@PathVariable Long id) {
-		return ResponseEntity.ok(documentService.getApplicationById(id));
+		try {
+	        return ResponseEntity.ok(documentService.getApplicationById(id));
+	    } catch (ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    } catch (Exception e) {
+	        logger.error("Unexpected error while fetching application with ID: {}", id, e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
 	}
 
 	@GetMapping("/{id}/download")
 	public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id) {
-		byte[] pdfBytes = documentService.getCertificatePdf(id);
-		return ResponseEntity.ok().header("Content-Type", "application/pdf")
-				.header("Content-Disposition", "attachment; filename=\"certificate.pdf\"").body(pdfBytes);
+		try {
+	        byte[] pdfBytes = documentService.getCertificatePdf(id);
+	        return ResponseEntity.ok()
+	                .header("Content-Type", "application/pdf")
+	                .header("Content-Disposition", "attachment; filename=\"certificate.pdf\"")
+	                .body(pdfBytes);
+	    } catch (ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    } catch (IllegalStateException e) {
+	        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+	    } catch (Exception e) {
+	        logger.error("Unexpected error while downloading certificate for application ID: {}", id, e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
 	}
 }
