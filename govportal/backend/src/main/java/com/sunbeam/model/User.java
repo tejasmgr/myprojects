@@ -58,8 +58,11 @@ public class User {
 
     // Citizen-specific fields
     private String address;
+    
     private LocalDate dateOfBirth;
+    
     private String gender;
+    
     private String fatherName;
     
     @Column(unique = true)

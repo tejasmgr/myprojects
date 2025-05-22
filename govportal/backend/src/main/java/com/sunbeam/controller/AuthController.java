@@ -11,6 +11,7 @@ import com.sunbeam.dto.request.LoginRequest;
 import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.request.ResetPasswordRequest;
 import com.sunbeam.dto.response.AuthResponse;
+import com.sunbeam.dto.response.ErrorResponse;
 import com.sunbeam.exception.AccountBlockedException;
 import com.sunbeam.exception.AccountDisabledException;
 import com.sunbeam.exception.BadCredentialsException;
@@ -25,20 +26,21 @@ import com.sunbeam.service.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
+@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> registerUser(@Valid @RequestBody RegisterRequest request) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
     	try {
     		return new ResponseEntity<>(authService.registerUser(request), HttpStatus.CREATED);
 		} catch (EmailAlreadyExistsException e) {
-	        return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("EMAIL_EXISTS", "Email is Already Registered"));
 	    }
     	catch (DatabaseOperationException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("DATABASE_ERROR", "Database error occurred. Please try again."));
 		}
         
     }

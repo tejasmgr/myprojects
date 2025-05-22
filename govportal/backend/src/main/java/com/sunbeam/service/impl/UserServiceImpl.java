@@ -52,13 +52,28 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
-    public void updateUserProfile(User updatedUser) {
+    public ApiResponse updateUserProfile(@Valid UserUpdateRequest request) {
         User existingUser = getCurrentUser();
-        existingUser.setFirstName(updatedUser.getFirstName());
-        existingUser.setLastName(updatedUser.getLastName());
-        existingUser.setAddress(updatedUser.getAddress());
+
+        // Manually update all updatable fields to avoid accidental overwrites
+        existingUser.setFirstName(request.getFirstName());
+        existingUser.setLastName(request.getLastName());
+        existingUser.setAddress(request.getAddress());
+        existingUser.setDateOfBirth(request.getDateOfBirth());
+        existingUser.setGender(request.getGender());
+        existingUser.setFatherName(request.getFatherName());
+        
+        // Update aadhar only if provided and different
+        if (request.getAadharNumber() != null && 
+            !request.getAadharNumber().equals(existingUser.getAadharNumber())) {
+            existingUser.setAadharNumber(request.getAadharNumber());
+        }
+
         userRepository.save(existingUser);
+
+        return new ApiResponse("User Profile Updated Successfully");
     }
+
 
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
@@ -81,13 +96,6 @@ public class UserServiceImpl implements UserService {
         return modelMapper.map(user, UserResponse.class);
     }
 
-	@Override
-	public ApiResponse updateUserProfile(@Valid UserUpdateRequest request) {
-		User existingUser = getCurrentUser();
-		existingUser.setFirstName(request .getFirstName());
-        existingUser.setLastName(request.getLastName());
-        existingUser.setAddress(request.getAddress());
-		return new ApiResponse("User Profile Updated Successfully");
-	}
+	
 
 }
