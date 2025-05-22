@@ -14,7 +14,7 @@ public interface UserService {
     User getCurrentUser();
     UserResponse getUserProfile(Long userId);
 //    List<User> getAllVerifiers();
-    void updateUserProfile(User user);
+
 	UserResponse getCurrentUserProfile();
 	ApiResponse updateUserProfile(@Valid UserUpdateRequest request);
 }
