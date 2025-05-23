@@ -74,7 +74,9 @@ const DocumentProofModal = ({ documentProofId, onClose }) => {
                 URL.revokeObjectURL(documentUrl);
             }
         };
-    }, [documentProofId, token]); // Dependencies: only re-run when documentProofId or token changes
+    }
+    , [documentProofId, token]
+); // Dependencies: only re-run when documentProofId or token changes
 
     const onDocumentLoadSuccess = ({ numPages }) => {
         setNumPages(numPages);

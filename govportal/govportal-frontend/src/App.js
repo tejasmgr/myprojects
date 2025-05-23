@@ -12,6 +12,7 @@ import VerifyEmailPage from './pages/auth/VerifyEmailPage';
 import SubmitApplication from './pages/citizen/SubmitApplication';
 import MyApplications from './pages/citizen/MyApplications';
 import PendingApplications from './pages/verifier/PendingApplications';
+import ApprovedApplications from './pages/verifier/ApprovedApplications';
 import ApplicationDetails from './pages/verifier/ApplicationDetails'; // Import the new component
 
 const App = () => {
@@ -36,6 +37,7 @@ const App = () => {
 
                     {/* Verifier Routes */}
                     <Route path="/verifier/pending-applications" element={<PendingApplications />} />
+                    <Route path="/verifier/approved-applications" element={<ApprovedApplications />} />
                     {/* New route for application details */}
                     <Route path="/verifier/applications/:id" element={<ApplicationDetails />} />
 
