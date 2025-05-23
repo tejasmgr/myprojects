@@ -133,14 +133,17 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void verifyEmail(String token) {
+    	logger.info("Attempting to verify email with token: {}", token);
         Token verificationToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new InvalidTokenException("Invalid token"));
+        logger.info("Found token for user: {}", verificationToken.getUser().getEmail());
+        
         
         User user = verificationToken.getUser();
         user.setEnabled(true);
         userRepository.save(user);
         tokenRepository.delete(verificationToken);
         
-        logger.info("Email verified for user: {}", user.getEmail());
+        logger.info("Email verified successfully for user: {}", user.getEmail());
     }
 }

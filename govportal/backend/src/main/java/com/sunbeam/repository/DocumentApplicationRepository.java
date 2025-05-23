@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DocumentApplicationRepository extends JpaRepository<DocumentApplication, Long> {
-    List<DocumentApplication> findByApplicant(User applicant);
+    Page<DocumentApplication> findByApplicant(User applicant,Pageable pageable);
+    
     List<DocumentApplication> findByStatus(ApplicationStatus status);
     Page<DocumentApplication> findByCurrentDesk(String deskLevel, Pageable pageable);
     long countByStatus(ApplicationStatus status);
@@ -41,7 +42,7 @@ public interface DocumentApplicationRepository extends JpaRepository<DocumentApp
     );
     
     
-//    List<DocumentApplication> findByApprovedBy(User user);
+
 
     @Query("SELECT da FROM DocumentApplication da WHERE da.approvedBy.id = :userId")
     List<DocumentApplication> findApprovedByUserId(@Param("userId") Long userId);

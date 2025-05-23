@@ -19,6 +19,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -110,7 +111,9 @@ public class DocumentServiceImpl implements DocumentService {
 	@Transactional(readOnly = true)
 	public Page<DocumentApplicationResponse> getAllApplications(Pageable pageable) {
 		try {
-			return documentRepository.findAll(pageable).map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
+			User currentUser =securityUtils.getCurrentUser();
+			Page<DocumentApplication> applicationsList = documentRepository.findByApplicant(currentUser,pageable);
+			return applicationsList.map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
 		} catch (DatabaseOperationException e) {
 			logger.error("Error fetching all applications: {}", e.getMessage(), e);
 			throw new DatabaseOperationException("Unable to Fetch Applications : "+ e.getMessage());
