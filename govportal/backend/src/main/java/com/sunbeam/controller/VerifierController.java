@@ -2,6 +2,7 @@ package com.sunbeam.controller;
 import com.sunbeam.dto.response.DocumentApplicationDetailsResponse;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.dto.response.VerificationStatsResponse;
+import com.sunbeam.exception.ResourceNotFoundException;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.DocumentProof;
 import com.sunbeam.service.DocumentService;
@@ -21,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -60,26 +62,41 @@ public class VerifierController {
         }
     }
     
-	@GetMapping
-	public ResponseEntity<Resource> getDocumentProof(@PathVariable Long proofId) {
-		DocumentProof proof = documentService.getDocumentProof(proofId);
-		if (proofId == null) {
-			return ResponseEntity.notFound().build();
-		}
-		Path file = Paths.get(fileStorageLocation).resolve(proof.getFilePath()).normalize();
-		Resource resource;
-		try {
-			resource = new UrlResource(file.toUri());
-		} catch (MalformedURLException e) {
-			return ResponseEntity.notFound().build();
-		}
-		if (resource.exists()) {
-			return ResponseEntity.ok().contentType(MediaType.parseMediaType(proof.getContentType()))
-					.header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\""+proof.getFileName()+ "\"")
-					.body(resource);
-		}else {
-			return ResponseEntity.notFound().build();		}
-	}
+    
+    
+    /**
+     * Endpoint to view or download a specific document proof, accessible by Verifiers.
+     * This endpoint retrieves the document proof as a Resource from the service layer
+     * and serves it via HTTP with appropriate headers for inline viewing.
+     *
+     * @param documentProofId The ID of the document proof to retrieve.
+     * @return ResponseEntity containing the file as a Resource, with appropriate headers.
+     * @throws IOException If there's an issue loading the file from the service.
+     * @throws ResourceNotFoundException If the document proof is not found.
+     */
+    @GetMapping("/proofs/{documentProofId}/view") // NEW ENDPOINT PATH
+    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN')") // Ensure only VERIFIERs can access this
+    public ResponseEntity<Resource> viewDocumentProof(@PathVariable Long documentProofId) throws IOException {
+        try {
+            Resource resource = verificationService.viewDocumentProof(documentProofId);
+            String contentType = verificationService.getDocumentProofContentType(documentProofId);
+
+            if (contentType == null || contentType.isBlank()) {
+                contentType = "application/octet-stream"; // Fallback
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (ResourceNotFoundException e) {
+            // Return 404 Not Found for specific resource not found exceptions
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            // Handle file loading errors
+            return ResponseEntity.status(500).body(null); // Or a more specific error body
+        }
+    }
 
     @GetMapping("/pending")
     public ResponseEntity<Page<DocumentApplicationResponse>> getPendingApplications(@PageableDefault(size = 20) Pageable pageable) {

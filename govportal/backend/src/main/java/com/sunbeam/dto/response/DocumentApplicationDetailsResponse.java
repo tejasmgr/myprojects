@@ -2,6 +2,7 @@ package com.sunbeam.dto.response;
 
 import com.sunbeam.model.DocumentApplication.ApplicationStatus;
 import com.sunbeam.model.DocumentApplication.DocumentType;
+import com.sunbeam.model.User;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,9 @@ import java.util.List;
 @ToString
 public class DocumentApplicationDetailsResponse {
     private Long id;
+    private User applicant;
+    private String applicantName;
+    private String adhaarNumber;
     private String formData;
     private DocumentType documentType;
     private ApplicationStatus status;
