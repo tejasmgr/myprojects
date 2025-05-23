@@ -21,16 +21,17 @@ import com.sunbeam.exception.InvalidTokenException;
 import com.sunbeam.exception.TokenExpiredException;
 import com.sunbeam.exception.UserNotFoundException;
 import com.sunbeam.service.AuthService;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest request) {
@@ -42,7 +43,6 @@ public class AuthController {
     	catch (DatabaseOperationException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("DATABASE_ERROR", "Database error occurred. Please try again."));
 		}
-        
     }
 
     @PostMapping("/login")

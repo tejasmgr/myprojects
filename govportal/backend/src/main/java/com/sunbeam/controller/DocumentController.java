@@ -8,6 +8,7 @@ import com.sunbeam.exception.FileStorageException;
 import com.sunbeam.exception.InvalidDocumentTypeException;
 import com.sunbeam.exception.ResourceNotFoundException;
 import com.sunbeam.model.CustomUserDetails;
+import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.DocumentApplication.DocumentType;
 import com.sunbeam.model.User;
 import com.sunbeam.service.DocumentService;
@@ -60,8 +61,8 @@ public class DocumentController {
 			// 1. Get the authenticated user
 			User applicant = userDetails.getUser(); 
 			// 2. Call the service to submit the application
-			documentService.submitApplication(applicant, documentApplicationRequest, documents);
-			return ResponseEntity.status(HttpStatus.CREATED).body("Application submitted successfully");
+			DocumentApplication application =  documentService.submitApplication(applicant, documentApplicationRequest, documents);
+			return ResponseEntity.status(HttpStatus.CREATED).body("Application submitted successfully with Application ID : " + application.getId() );
 		}
 		catch (jakarta.validation.ConstraintViolationException e) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Validation error: " + e.getMessage());
