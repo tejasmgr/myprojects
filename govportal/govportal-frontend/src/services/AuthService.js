@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8080/api/auth'; // Adjust if your backend API URL/port is different
+const API_BASE_URL = 'http://localhost:8080/api/auth'; 
 
 const login = (email, password) => {
   return axios.post(`${API_BASE_URL}/login`, {
@@ -8,6 +8,8 @@ const login = (email, password) => {
     password
   });
 };
+
+
 
 const register = (userData) => {
   return axios.post(`${API_BASE_URL}/register`, userData);
@@ -18,5 +20,7 @@ const register = (userData) => {
 const AuthService = {
   login,register
 };
+
+
 
 export default AuthService;
