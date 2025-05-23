@@ -145,7 +145,7 @@ const ApplicationDetails = () => {
   // Function to handle rejecting an application (using the existing endpoint)
   const handleRejectSubmit = async () => {
     if (!rejectRemarks.trim()) {
-      setError("Remarks are required for rejection.");
+      setRejectError("Remarks are required for rejection.");
       return;
     }
 

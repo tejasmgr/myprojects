@@ -110,9 +110,9 @@ const PendingApplications = () => {
                     <thead className="bg-success text-white">
                         <tr>
                             <th scope="col" className="py-3">ID</th>
-                            <th scope="col" className="py-3">Applicant Email</th>
+                            {/* <th scope="col" className="py-3">Applicant Email</th> */}
                             <th scope="col" className="py-3">Document Type</th>
-                            <th scope="col" className="py-3">Purpose</th>
+                            {/* <th scope="col" className="py-3">Purpose</th> */}
                             <th scope="col" className="py-3">Submitted On</th>
                             <th scope="col" className="py-3">Actions</th>
                         </tr>
@@ -121,9 +121,9 @@ const PendingApplications = () => {
                         {pendingApplications.map((app) => (
                             <tr key={app.id}>
                                 <td>{app.id}</td>
-                                <td>{app.applicantEmail}</td>
+                                {/* <td>{app.applicantEmail}</td> */}
                                 <td>{app.documentType}</td>
-                                <td>{app.purpose}</td>
+                                {/* <td>{app.purpose}</td> */}
                                 <td>{new Date(app.submissionDate).toLocaleDateString()}</td>
                                 <td>
                                     <button
