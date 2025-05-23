@@ -1,8 +1,9 @@
-import React from 'react';
+import React from 'react'
 
-const Home = ()=> {
-    return <div>Home Page - To be implemented</div>;
-
+function Home() {
+  return (
+    <div>Home Page yet to Designed</div>
+  )
 }
 
-export default Home;
+export default Home
