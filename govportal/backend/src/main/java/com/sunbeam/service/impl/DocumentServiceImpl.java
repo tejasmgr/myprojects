@@ -160,7 +160,9 @@ public class DocumentServiceImpl implements DocumentService {
 	
 			DocumentApplication application = documentRepository.findById(id)
 					.orElseThrow(() -> new DocumentNotFoundEception("DocumentApplication not found in Database"));
-		
+			
+			
+			
 			List<DocumentProofResponse> proofResponses = application.getDocumentProofs().stream()
 					.map(proof -> DocumentProofResponse.builder()
 							.id(proof.getId())
@@ -171,6 +173,8 @@ public class DocumentServiceImpl implements DocumentService {
 					.collect(Collectors.toList());		
 		return DocumentApplicationDetailsResponse.builder()
 				.id(application.getId())
+				.applicantName(application.getApplicant().getFullName())
+				.adhaarNumber(application.getApplicant().getAadharNumber())
 				.formData(application.getFormData())
 				.documentType(application.getDocumentType())
 				.status(application.getStatus())
