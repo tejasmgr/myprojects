@@ -46,11 +46,19 @@ const Navbar = () => {
                                     </>
                                 )}
                                 {/* Verifier-specific link */}
-                                {user.role === 'VERIFIER' && (
+                                {(user.role === 'VERIFIER' || user.role === 'ADMIN') && (
                                     <li className="nav-item">
                                         <Link className="nav-link" to="/verifier/pending-applications">Pending Applications</Link> {/* New link */}
                                     </li>
                                 )}
+                                {/* Verifier-specific link */}
+                                {(user.role === 'VERIFIER' || user.role === 'ADMIN') && (
+                                    <li className="nav-item">
+                                        <Link className="nav-link" to="/verifier/approved-applications">Approved Applications</Link> {/* New link */}
+                                    </li>
+                                )}
+
+
                                 {/* Admin-specific link (placeholder for now) */}
                                 {user.role === 'ADMIN' && (
                                     <li className="nav-item">
