@@ -27,3 +27,15 @@
     top: 10px;
     right: 10px;
 }
+
+/* Ensure the PDF document is centered horizontally */
+.pdf-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+/* Optional: add max-width constraints if needed */
+.react-pdf__Page {
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
