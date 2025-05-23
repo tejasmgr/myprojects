@@ -4,5 +4,8 @@
     <h2>Email Verification</h2>
     <p>Click the link below to verify your email:</p>
     <a th:href="${verificationLink}" th:text="${verificationLink}"></a>
+	
+    <p>If you prefer, use this token for verification:</p>
+    <p><strong th:text="${token}"></strong></p>
 </body>
 </html>

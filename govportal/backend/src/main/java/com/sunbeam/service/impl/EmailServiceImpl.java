@@ -24,8 +24,8 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendVerificationEmail(String toEmail, String token) {
         Context context = new Context();
-        context.setVariable("verificationLink", 
-            "https://portal.gov.in/verify-email?token=" + token);
+        context.setVariable("verificationLink", "http://localhost:3000/verify-email?token=" + token);
+        context.setVariable("token", token); // Set the token separately
 
         String htmlContent = templateEngine.process("email/verification", context);
 
