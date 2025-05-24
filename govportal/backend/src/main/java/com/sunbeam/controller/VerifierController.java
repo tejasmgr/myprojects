@@ -51,7 +51,7 @@ public class VerifierController {
     }
     
     @GetMapping("/application/details/{applicationId}")
-    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN') or hasRole('CITIZEN')")
     public ResponseEntity<DocumentApplicationDetailsResponse> getDocumentApplicationDetails(
             @PathVariable Long applicationId) {
         DocumentApplicationDetailsResponse applicationDetails = documentService.getDocumentApplicationDetails(applicationId);
@@ -75,7 +75,7 @@ public class VerifierController {
      * @throws ResourceNotFoundException If the document proof is not found.
      */
     @GetMapping("/proofs/{documentProofId}/view") // NEW ENDPOINT PATH
-    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN')") // Ensure only VERIFIERs can access this
+    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN') ") // Ensure only VERIFIERs can access this
     public ResponseEntity<Resource> viewDocumentProof(@PathVariable Long documentProofId) throws IOException {
         try {
             Resource resource = verificationService.viewDocumentProof(documentProofId);
@@ -100,7 +100,6 @@ public class VerifierController {
 
     @GetMapping("/pending")
     public ResponseEntity<Page<DocumentApplicationResponse>> getPendingApplications(@PageableDefault(size = 20) Pageable pageable) {
-    	
         return ResponseEntity.ok(verificationService.getPendingApplications(pageable));
     }
     
@@ -130,7 +129,7 @@ public class VerifierController {
         return ResponseEntity.ok(verificationService.rejectApplication(applicationId, remarks));
     }
 
-    @PostMapping("/{applicationId}/request-change")
+    @PostMapping("/request-change/{applicationId}")
     public ResponseEntity<DocumentApplicationResponse> moveToNextDesk(
     		@PathVariable Long applicationId,
             @RequestParam String remarks) {

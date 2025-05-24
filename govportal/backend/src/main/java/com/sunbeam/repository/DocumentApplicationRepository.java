@@ -16,7 +16,7 @@ import java.util.Optional;
 
 public interface DocumentApplicationRepository extends JpaRepository<DocumentApplication, Long> {
     Page<DocumentApplication> findByApplicant(User applicant,Pageable pageable);
-    
+    Page<DocumentApplication> findByApplicantAndStatus(User applicant, ApplicationStatus status,Pageable pageable);
     List<DocumentApplication> findByStatus(ApplicationStatus status);
     Page<DocumentApplication> findByCurrentDesk(String deskLevel, Pageable pageable);
     long countByStatus(ApplicationStatus status);
