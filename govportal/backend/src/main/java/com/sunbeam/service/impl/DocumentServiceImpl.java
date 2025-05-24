@@ -17,6 +17,8 @@ import com.sunbeam.service.PdfGeneratorService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContext;
@@ -25,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -196,6 +199,67 @@ public class DocumentServiceImpl implements DocumentService {
 		
 		return documentProofRepository.getById(proofId);
 	}
+
+	@Override
+	@Transactional(readOnly = true)
+	public Page<DocumentApplicationResponse> getApprovalPassesApplicationsOfCitizen(Pageable pageable) {
+		try {
+			User currentUser =securityUtils.getCurrentUser();
+			Page<DocumentApplication> applicationsList = documentRepository.findByApplicantAndStatus(currentUser,DocumentApplication.ApplicationStatus.APPROVED,pageable);
+			return applicationsList.map(app -> modelMapper.map(app, DocumentApplicationResponse.class));
+		} catch (DatabaseOperationException e) {
+			logger.error("Error fetching Approval- Passed applications: {}", e.getMessage(), e);
+			throw new DatabaseOperationException("Unable to Fetch Approved-Applications : "+ e.getMessage());
+		}
+	}
+	
+	
+	/**
+     * Retrieves a document proof as a Spring Resource for serving.
+     * This method handles finding the document proof by ID, loading the file
+     * from the local file system, and performing necessary checks.
+     *
+     * @param documentProofId The ID of the document proof.
+     * @return A Spring Resource representing the file.
+     * @throws ResourceNotFoundException If the document proof or the file is not found.
+     * @throws IOException If there's an error loading the file from the file system.
+     */
+	public Resource viewDocumentProof(Long documentProofId) throws IOException {
+        // 1. Retrieve the DocumentProof entity from the database
+        DocumentProof documentProof = documentProofRepository.findById(documentProofId)
+                .orElseThrow(() -> new ResourceNotFoundException("DocumentProof not found with ID: " + documentProofId));
+
+        // 2. Construct the Path to the actual file on the server's file system
+        Path filePath = Paths.get(documentProof.getFilePath()); // documentProof.getFilePath() should return "D:\\CDAC\\..."
+
+        Resource resource;
+        try {
+            resource = new UrlResource(filePath.toUri()); // Convert local file path to a URL resource
+        } catch (MalformedURLException ex) {
+            throw new RuntimeException("Error creating URL for file: " + documentProof.getFileName(), ex);
+        }
+
+        // 3. Check if the file exists and is readable
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new ResourceNotFoundException("File not found or not readable: " + documentProof.getFileName());
+        }
+
+        return resource;
+    }
+	
+	/**
+     * Retrieves the content type of a document proof.
+     *
+     * @param documentProofId The ID of the document proof.
+     * @return The content type string (e.g., "application/pdf").
+     * @throws ResourceNotFoundException If the document proof is not found.
+     */
+    public String getDocumentProofContentType(Long documentProofId) {
+        DocumentProof documentProof = documentProofRepository.findById(documentProofId)
+                .orElseThrow(() -> new ResourceNotFoundException("DocumentProof not found with ID: " + documentProofId));
+        return documentProof.getContentType();
+    }
+	
 
 
 
