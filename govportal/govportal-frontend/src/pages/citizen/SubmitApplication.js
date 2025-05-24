@@ -151,7 +151,7 @@ const SubmitApplication = () => {
 
     return (
         <div className="container mt-5">
-            <div className="row justify-content.center">
+            <div className="row justify-content-center">
                 <div className="col-md-8 col-lg-7">
                     <div className="card shadow-lg p-4 rounded-4">
                         <h2 className="card-title text-center mb-4 text-primary fw-bold">Submit New Document Application</h2>

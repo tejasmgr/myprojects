@@ -43,6 +43,9 @@ const Navbar = () => {
                                         <li className="nav-item">
                                             <Link className="nav-link" to="/citizen/my-applications">My Applications</Link>
                                         </li>
+                                        <li className="nav-item">
+                                            <Link className="nav-link" to="/citizen/approved-applications">My Approved Applications</Link>
+                                        </li>
                                     </>
                                 )}
                                 {/* Verifier-specific link */}

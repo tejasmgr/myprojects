@@ -14,6 +14,9 @@ import MyApplications from './pages/citizen/MyApplications';
 import PendingApplications from './pages/verifier/PendingApplications';
 import ApprovedApplications from './pages/verifier/ApprovedApplications';
 import ApplicationDetails from './pages/verifier/ApplicationDetails'; // Import the new component
+import CitizensApprovedApplications from './pages/citizen/CitizensApprovedApplications';
+import CitizenApplicationDetails from './pages/citizen/CitizenApplicationDetails';
+
 
 const App = () => {
     return (
@@ -34,6 +37,9 @@ const App = () => {
                     {/* Citizen Routes */}
                     <Route path="/citizen/submit-application" element={<SubmitApplication />} />
                     <Route path="/citizen/my-applications" element={<MyApplications />} />
+                    <Route path = "/citizen/approved-applications" element={< CitizensApprovedApplications />}/>
+                    <Route path="/citizen/applications/details/:id" element={<CitizenApplicationDetails />} />
+                   
 
                     {/* Verifier Routes */}
                     <Route path="/verifier/pending-applications" element={<PendingApplications />} />
