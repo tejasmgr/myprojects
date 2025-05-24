@@ -35,4 +35,6 @@ public interface DocumentService {
 //	String uploadSupportingDocument(Long applicationId, MultipartFile file);
 
 	DocumentProof getDocumentProof(Long proofId);
+
+	Page<DocumentApplicationResponse> getApprovalPassesApplicationsOfCitizen(Pageable pageable);
 }

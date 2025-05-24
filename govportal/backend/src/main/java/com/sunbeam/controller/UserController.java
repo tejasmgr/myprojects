@@ -16,11 +16,6 @@ public class UserController {
 
     private final UserService userService;
     
-//    @GetMapping("/me")
-//    public ResponseEntity<UserResponse> getCurrentUserProfile() {
-//        return ResponseEntity.ok(userService.getCurrentUserProfile());
-//    }
-
     @GetMapping("/me")
     public ResponseEntity<User> getCurrentUser() {
         return ResponseEntity.ok(userService.getCurrentUser());

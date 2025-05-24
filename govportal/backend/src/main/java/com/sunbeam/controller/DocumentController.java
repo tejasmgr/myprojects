@@ -2,6 +2,7 @@ package com.sunbeam.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sunbeam.dto.request.DocumentApplicationRequest;
+import com.sunbeam.dto.response.DocumentApplicationDetailsResponse;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.exception.DatabaseOperationException;
 import com.sunbeam.exception.FileStorageException;
@@ -13,18 +14,21 @@ import com.sunbeam.model.DocumentApplication.DocumentType;
 import com.sunbeam.model.User;
 import com.sunbeam.service.DocumentService;
 import com.sunbeam.service.VerificationWorkflowService;
+import com.sunbeam.service.impl.DocumentServiceImpl;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.bind.DefaultValue;
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,10 +37,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+
+import org.apache.tika.metadata.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 
 
 
@@ -45,7 +49,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class DocumentController {
 
-	private final DocumentService documentService;
+	private final DocumentServiceImpl documentService;
+	
 //	private final VerificationWorkflowService workflowService;
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -101,10 +106,20 @@ public class DocumentController {
 		}
 	}
 	
-	
+	@GetMapping("/citizen/approvalPassed-applications")
+	public ResponseEntity<Page<DocumentApplicationResponse>> getApprovalPassedApplications(@PageableDefault(size = 20) Pageable pageable) {
+		try {
+			return ResponseEntity.ok(documentService.getApprovalPassesApplicationsOfCitizen(pageable));
+		} catch (DatabaseOperationException e) { // Catch your custom exception
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}catch (Exception e) {
+			logger.error("Unexpected error while fetching applications", e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+		}
+	}
 	
 
-	@GetMapping("/{id}")
+	@GetMapping("application/{id}")
 	public ResponseEntity<DocumentApplicationResponse> getApplication(@PathVariable Long id) {
 		try {
 	        return ResponseEntity.ok(documentService.getApplicationById(id));
@@ -115,8 +130,56 @@ public class DocumentController {
 	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 	    }
 	}
+	
+	@GetMapping("application-details/{id}")
+	public ResponseEntity<DocumentApplicationDetailsResponse> getApplicationDetails(@PathVariable Long id) {
+		try {
+	        return ResponseEntity.ok(documentService.getDocumentApplicationDetails(id));
+	    } catch (ResourceNotFoundException e) {
+	        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+	    } catch (Exception e) {
+	        logger.error("Unexpected error while fetching application with ID: {}", id, e);
+	        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+	    }
+	}
+	
+	/**
+     * Endpoint to view or download a specific document proof, accessible by Verifiers.
+     * This endpoint retrieves the document proof as a Resource from the service layer
+     * and serves it via HTTP with appropriate headers for inline viewing.
+     *
+     * @param documentProofId The ID of the document proof to retrieve.
+     * @return ResponseEntity containing the file as a Resource, with appropriate headers.
+     * @throws IOException If there's an issue loading the file from the service.
+     * @throws ResourceNotFoundException If the document proof is not found.
+     */
+    @GetMapping("/proofs/{documentProofId}/view") // NEW ENDPOINT PATH
+    
+    public ResponseEntity<Resource> viewDocumentProof(@PathVariable Long documentProofId) throws IOException {
+        try {
+            Resource resource = documentService.viewDocumentProof(documentProofId);
+            String contentType = documentService.getDocumentProofContentType(documentProofId);
 
-	@GetMapping("/{id}/download")
+            if (contentType == null || contentType.isBlank()) {
+                contentType = "application/octet-stream"; // Fallback
+            }
+
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
+                    .body(resource);
+        } catch (ResourceNotFoundException e) {
+            // Return 404 Not Found for specific resource not found exceptions
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            // Handle file loading errors
+            return ResponseEntity.status(500).body(null); // Or a more specific error body
+        }
+    }
+	
+	
+
+	@GetMapping("certificate/{id}/download")
 	public ResponseEntity<byte[]> downloadCertificate(@PathVariable Long id) {
 		try {
 	        byte[] pdfBytes = documentService.getCertificatePdf(id);
