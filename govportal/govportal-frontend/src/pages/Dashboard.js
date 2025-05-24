@@ -63,7 +63,10 @@ const Dashboard = () => {
                         <div className="d-grid gap-2 col-md-6 mx-auto">
                             <Link to="/citizen/submit-application" className="btn btn-outline-primary btn-lg rounded-pill">Submit New Application</Link>
                             <Link to="/citizen/my-applications" className="btn btn-outline-info btn-lg rounded-pill">View My Applications</Link>
+                            <Link to="/citizen/approved-applications" className="btn btn-outline-info btn-lg rounded-pill">View My Approved Applications</Link>
+
                             <Link to="/profile" className="btn btn-outline-secondary btn-lg rounded-pill">Manage My Profile</Link>
+
                         </div>
                     </div>
                 )}

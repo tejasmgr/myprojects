@@ -63,6 +63,7 @@ const ApprovedApplications = () => {
 
     // Function to navigate to application details
     const handleReviewClick = (appId) => {
+        console.log("view details intialized and trying to navigate to the Citizen Application Details")
         navigate(`/verifier/applications/${appId}`);
     };
 

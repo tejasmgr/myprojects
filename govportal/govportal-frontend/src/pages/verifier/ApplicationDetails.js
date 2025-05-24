@@ -15,7 +15,7 @@ const ApplicationDetails = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   //   const [remarks, setRemarks] = useState(""); // For reject action
-//   const [actionLoading, setActionLoading] = useState(false);
+  //   const [actionLoading, setActionLoading] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
   const [selectedProofId, setSelectedProofId] = useState(null);
