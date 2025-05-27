@@ -1,5 +1,6 @@
 package com.sunbeam.repository;
 
+import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.DocumentApplication.ApplicationStatus;
 import com.sunbeam.model.DocumentApplication.DocumentType;
@@ -15,9 +16,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface DocumentApplicationRepository extends JpaRepository<DocumentApplication, Long> {
+	
     Page<DocumentApplication> findByApplicant(User applicant,Pageable pageable);
     Page<DocumentApplication> findByApplicantAndStatus(User applicant, ApplicationStatus status,Pageable pageable);
-    List<DocumentApplication> findByStatus(ApplicationStatus status);
+    Page<DocumentApplication> findByStatus(ApplicationStatus status,Pageable pageable);
     Page<DocumentApplication> findByCurrentDesk(String deskLevel, Pageable pageable);
     long countByStatus(ApplicationStatus status);
     long count();

@@ -3,6 +3,7 @@ package com.sunbeam.service;
 import com.sunbeam.dto.request.CreateVerifierRequest;
 import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.response.AdminStatsResponse;
+import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.User;
@@ -17,6 +18,9 @@ public interface AdminService {
     UserResponse toggleUserBlockStatus(Long userId, boolean block);
     Page<UserResponse> getAllCitizens(Pageable pageable);
     AdminStatsResponse getSystemStatistics();
-    List<DocumentApplication> getAllApplications(String status);
+    Page<DocumentApplication> getAllApplicationsWithStatus(String status,Pageable pageable);
 	Page<UserResponse> getAllVerifiers(Pageable pageable);
+	Page<DocumentApplication> getAllApplicationsOnDesk1(String currentDesk,Pageable pageable);
+	Page<DocumentApplication> getAllApplicationsOnDesk2(String currentDesk,Pageable pageable);
+	
 }
