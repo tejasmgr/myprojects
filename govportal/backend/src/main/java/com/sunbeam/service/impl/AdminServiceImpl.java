@@ -2,6 +2,7 @@ package com.sunbeam.service.impl;
 
 import com.sunbeam.dto.request.CreateVerifierRequest;
 import com.sunbeam.dto.response.AdminStatsResponse;
+import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.exception.*;
 import com.sunbeam.model.*;
@@ -47,8 +48,12 @@ public class AdminServiceImpl implements AdminService {
                 .role(User.Role.VERIFIER)
                 .designation(designation)
                 .enabled(true)
+                .address(request.getAddress())
+                .dateOfBirth(request.getDateOfBirth())
+                .gender(request.getGender())
+                .aadharNumber(request.getAadharNumber())
                 .build();
-//        verifier.setEnabled(true);
+
         System.out.println("Designation : "+ verifier.getDesignation()+ "Enabled : "+ verifier.isEnabled());
         User savedUser = userRepository.save(verifier);
 //       System.out.println("Enabled Status of Persisted Entity"+savedUser.isEnabled()); 
@@ -119,12 +124,19 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<DocumentApplication> getAllApplications(String status) {
+    public Page<DocumentApplication> getAllApplicationsWithStatus(String status, Pageable pageable) {
         if(status == null || status.isEmpty()) {
-            return appRepository.findAll();
+            return appRepository.findAll(pageable);
         }
-        return appRepository.findByStatus(DocumentApplication.ApplicationStatus.valueOf(status.toUpperCase()));
+        return appRepository.findByStatus(DocumentApplication.ApplicationStatus.valueOf(status.toUpperCase()),pageable);
     }
+    
+   
+    
+    
+    
+    
+    
 
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()
@@ -132,10 +144,24 @@ public class AdminServiceImpl implements AdminService {
                 .fullName(user.getFirstName() + " " + user.getLastName())
                 .email(user.getEmail())
                 .role(user.getRole())
+                .designation(user.getDesignation())
+                .updatedAt(user.getUpdatedAt())
                 .blocked(user.isBlocked())
                 .enabled(user.isEnabled())
                 .build();
     }
+
+	@Override
+	public Page<DocumentApplication> getAllApplicationsOnDesk1(String currentDesk, Pageable pageable) {
+		return appRepository.findByCurrentDesk(currentDesk, pageable);
+		
+	}
+	
+	@Override
+	public Page<DocumentApplication> getAllApplicationsOnDesk2(String currentDesk, Pageable pageable) {
+		return appRepository.findByCurrentDesk(currentDesk, pageable);
+		
+	}
 
 	
 }
