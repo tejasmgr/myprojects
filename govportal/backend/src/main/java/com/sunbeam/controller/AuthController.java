@@ -3,10 +3,15 @@ package com.sunbeam.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 
+import com.sunbeam.dto.request.ChangePasswordRequest;
 import com.sunbeam.dto.request.LoginRequest;
 import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.request.ResetPasswordRequest;
@@ -21,6 +26,10 @@ import com.sunbeam.exception.InvalidTokenException;
 import com.sunbeam.exception.TokenExpiredException;
 import com.sunbeam.exception.UserNotFoundException;
 import com.sunbeam.service.AuthService;
+import com.sunbeam.service.UserService;
+
+import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +38,8 @@ import org.slf4j.LoggerFactory;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
+	
+	
 
     private final AuthService authService;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
@@ -46,18 +57,10 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> authenticateUser(@Valid @RequestBody LoginRequest request) {
-    	try {
-            return ResponseEntity.ok(authService.authenticateUser (request));
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
-        } catch (AccountDisabledException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        } catch (AccountBlockedException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(null);
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+    public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest request) {
+      AuthResponse response = authService.authenticateUser(request);
+        return ResponseEntity.ok(response);
+        
     }
 
     @PostMapping("/forgot-password")
@@ -75,7 +78,7 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(
             @RequestParam String token,
-            @Valid @RequestBody ResetPasswordRequest request
+            @RequestBody String request
     ) {
     	try {
             authService.completePasswordReset(token, request);
@@ -88,6 +91,8 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred");
         }
     }
+    
+    
 
     @GetMapping("/verify-email")
     public ResponseEntity<String> verifyEmail(@RequestParam String token) {
