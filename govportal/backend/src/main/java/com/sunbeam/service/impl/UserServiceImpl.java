@@ -2,8 +2,10 @@ package com.sunbeam.service.impl;
 
 
 
+import com.sunbeam.dto.request.ChangePasswordRequest;
 import com.sunbeam.dto.request.UserUpdateRequest;
 import com.sunbeam.dto.response.UserResponse;
+import com.sunbeam.exception.PasswordMismatchException;
 import com.sunbeam.exception.ResourceNotFoundException;
 import com.sunbeam.exception.UserNotFoundException;
 import com.sunbeam.model.ApiResponse;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
@@ -29,14 +32,18 @@ public class UserServiceImpl implements UserService {
 	ModelMapper modelMapper;
 	
 	@Autowired
+	PasswordEncoder passwordEncoder;
+	
+	@Autowired
 	SecurityUtils securityUtils;
     private final UserRepository userRepository;
 
     @Override
-    public User getCurrentUser() {
+    public UserResponse getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        return userRepository.findByEmail(email)
+        User user =  userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("User not logged in"));
+        return mapToUserResponse(user);
     }
 
     @Override
@@ -53,7 +60,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ApiResponse updateUserProfile(@Valid UserUpdateRequest request) {
-        User existingUser = getCurrentUser();
+        User existingUser = securityUtils.getCurrentUser();
 
         // Manually update all updatable fields to avoid accidental overwrites
         existingUser.setFirstName(request.getFirstName());
@@ -80,8 +87,17 @@ public class UserServiceImpl implements UserService {
                 .id(user.getId())
                 .fullName(user.getFirstName() + " " + user.getLastName())
                 .email(user.getEmail())
+                .gender(user.getGender())
                 .role(user.getRole())
-//                .address(user.getAddress())
+                .designation(user.getDesignation())
+                .aadharNumber(user.getAadharNumber())
+                .fatherName(user.getFatherName())
+                .dateOfBirth(user.getDateOfBirth())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .enabled(user.isEnabled())
+                .blocked(user.isBlocked())
+                .address(user.getAddress())
                 .build();
     }
 
@@ -96,6 +112,20 @@ public class UserServiceImpl implements UserService {
         return modelMapper.map(user, UserResponse.class);
     }
 
-	
+    @Override
+	public void changePassword(ChangePasswordRequest request) {
+			User user = securityUtils.getCurrentUser();
+			
+//			String existingPassword = passwordEncoder.encode(request.getCurrentPassword());
+			if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+				throw new PasswordMismatchException("Current password is incorrect");
+			}
+			
+			
+
+			user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+		    userRepository.save(user);
+		
+	}
 
 }

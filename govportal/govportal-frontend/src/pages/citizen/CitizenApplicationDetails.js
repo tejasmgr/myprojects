@@ -14,25 +14,10 @@ const CitizenApplicationDetails = () => {
   const [application, setApplication] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  //   const [remarks, setRemarks] = useState(""); // For reject action
-  //   const [actionLoading, setActionLoading] = useState(false);
-  //   const [actionMessage, setActionMessage] = useState("");
+  
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
   const [selectedProofId, setSelectedProofId] = useState(null);
-  //   const [showApproveModal, setShowApproveModal] = useState(false);
-  //   const [approveRemarks, setApproveRemarks] = useState("");
-  //   const [approvalLoading, setApprovalLoading] = useState(false);
-  //   const [approvalError, setApprovalError] = useState("");
-
-  //   const [showSuccessModal, setShowSuccessModal] = useState(false);
-
-  // Add these state variables near your other state declarations
-  //   const [showRejectModal, setShowRejectModal] = useState(false);
-  //   const [rejectRemarks, setRejectRemarks] = useState("");
-  //   const [rejectLoading, setRejectLoading] = useState(false);
-  //   const [rejectError, setRejectError] = useState("");
-  //   const [showRejectSuccessModal, setShowRejectSuccessModal] = useState(false);
-
+ 
   useEffect(() => {
     // Redirect if not a verifier or not logged in
     if (!user) {
