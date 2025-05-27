@@ -5,15 +5,13 @@
 const API_BASE_URL = "http://localhost:8080/api"; // Your backend API base URL
 
 // Helper function to make authenticated API requests
-export const authenticatedFetch = async (url, options = {}) => {
-  const token = localStorage.getItem("token"); // Get token from localStorage
+export const authenticatedFetch = async (url, options = {}, returnRaw = false) => {
+  const token = localStorage.getItem("token");
 
   const headers = {
-    // 'Content-Type': 'application/json', // This will be handled by browser for FormData
-    ...options.headers, // Allow overriding headers
+    ...options.headers,
   };
 
-  // Add Authorization header if a token exists
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
@@ -23,48 +21,30 @@ export const authenticatedFetch = async (url, options = {}) => {
     headers,
   });
 
-  // Handle HTTP errors
+  if (returnRaw) return response;
+
   if (!response.ok) {
-    // Read the response body once, then try to parse it
     const errorText = await response.text();
-    let errorData = {
-      message: errorText || response.statusText || "Something went wrong.",
-    };
+    let errorData = { message: errorText || response.statusText || "Something went wrong." };
     try {
-      // If the error response is JSON, parse it for more details
       const jsonError = JSON.parse(errorText);
       errorData = { ...errorData, ...jsonError };
-    } catch (parseError) {
-      // If it's not JSON, the errorText already contains the message
-    }
-    // Throw an error with more details
-    throw new Error(
-      errorData.message || `HTTP error! status: ${response.status}`
-    );
+    } catch (_) {}
+    throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
   }
 
-  // --- START OF FIX: Handle different content types for successful responses ---
   const contentType = response.headers.get("content-type");
-
-  if (contentType && contentType.includes("application/json")) {
-    // If it's JSON, parse it
+  if (contentType?.includes("application/json")) {
     const text = await response.text();
     return text ? JSON.parse(text) : {};
-  } else if (
-    contentType &&
-    (contentType.includes("application/pdf") ||
-      contentType.startsWith("image/"))
-  ) {
-    // If it's a PDF or an image, return the raw Response object
-    // This allows the calling component (e.g., DocumentProofModal) to call .blob() on it
+  } else if (contentType?.includes("application/pdf") || contentType?.startsWith("image/")) {
     return response;
   } else {
-    // For other content types (e.g., plain text), return the text
     const text = await response.text();
-    return text || {}; // Return the text if it exists, otherwise an empty object
+    return text || {};
   }
-  // --- END OF FIX ---
 };
+
 
 // Helper function for unauthenticated API requests (e.g., login, register, verify-email)
 export const unauthenticatedFetch = async (url, options = {}) => {
@@ -78,31 +58,36 @@ export const unauthenticatedFetch = async (url, options = {}) => {
     headers,
   });
 
-  if (!response.ok) {
-    // Read the response body once, then try to parse it
-    const errorText = await response.text();
-    let errorData = {
-      message: errorText || response.statusText || "Something went wrong.",
-    };
-    try {
-      // If the error response is JSON, parse it for more details
-      const jsonError = JSON.parse(errorText);
-      errorData = { ...errorData, ...jsonError };
-    } catch (parseError) {
-      // If it's not JSON, the errorText already contains the message
+  // ✅ If the response is successful, return as usual
+  if (response.ok) {
+    // Automatically parse JSON only if expected, else return raw response
+    const contentType = response.headers.get("content-type");
+    if (contentType?.includes("application/json")) {
+      return response.json();
+    } else {
+      return response;
     }
-    throw new Error(
-      errorData.message || `HTTP error! status: ${response.status}`
-    );
   }
 
-  // For successful responses, check if the response has content.
-  const contentType = response.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    const text = await response.text();
-    return text ? JSON.parse(text) : {};
-  } else {
-    const text = await response.text();
-    return text || {}; // Return the text if it exists, otherwise an empty object
+  // ❌ For failed responses: Try to extract useful error message
+  let errorMessage = `HTTP error! status: ${response.status}`;
+  console.log(errorMessage)
+  console.log(response)
+  let errorCode = null;
+
+  try {
+    const errorText = await response.text();
+    const jsonError = JSON.parse(errorText);
+    errorMessage = jsonError.message || errorMessage;
+    errorCode = jsonError.code || null;
+  } catch {
+    // Ignore JSON parsing error, fallback to status text
+    errorMessage = response.statusText || errorMessage;
   }
+
+  // Throw custom error object with optional code
+  const error = new Error(errorMessage);
+  error.status = response.status;
+  error.code = errorCode;
+  throw error;
 };

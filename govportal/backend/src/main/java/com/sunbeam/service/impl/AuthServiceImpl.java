@@ -20,6 +20,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
@@ -81,6 +82,7 @@ public class AuthServiceImpl implements AuthService {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
             User user = userDetails.getUser();
             
+            
             if(!userDetails.isEnabled()) throw new AccountDisabledException("Account not verified");
             if(userDetails.isBlocked()) throw new AccountBlockedException("Account blocked");
             
@@ -114,7 +116,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public void completePasswordReset(String token, ResetPasswordRequest request) {
+    public void completePasswordReset(String token, String newPassword) {
         Token resetToken = tokenRepository.findByToken(token)
                 .orElseThrow(() -> new InvalidTokenException("Invalid token"));
         
@@ -124,7 +126,7 @@ public class AuthServiceImpl implements AuthService {
         }
         
         User user = resetToken.getUser();
-        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         tokenRepository.delete(resetToken);
         logger.info("Password reset completed for user: {}", user.getEmail());
@@ -146,4 +148,6 @@ public class AuthServiceImpl implements AuthService {
         
         logger.info("Email verified successfully for user: {}", user.getEmail());
     }
+
+	
 }

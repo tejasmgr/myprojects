@@ -1,6 +1,6 @@
 // src/pages/auth/ForgotPasswordPage.js
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link , useNavigate} from 'react-router-dom';
 import { unauthenticatedFetch } from '../../utils/api';
 
 const ForgotPasswordPage = () => {
@@ -8,6 +8,7 @@ const ForgotPasswordPage = () => {
     const [message, setMessage] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -16,9 +17,9 @@ const ForgotPasswordPage = () => {
         setLoading(true);
 
         try {
-            await unauthenticatedFetch('/auth/forgot-password', {
-                method: 'POST',
-                body: JSON.stringify({ email }),
+            await unauthenticatedFetch(`/auth/forgot-password?email=${email}`, {
+                method: 'POST'
+                
             });
             setMessage('A password reset link has been sent to your email address.');
         } catch (err) {
