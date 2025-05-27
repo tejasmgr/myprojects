@@ -8,6 +8,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -47,9 +49,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
         EmailAlreadyExistsException.class,
-        PasswordMismatchException.class,
+        
         InvalidTokenException.class
     })
+    
     public ResponseEntity<ErrorResponse> handleBadRequestExceptions(RuntimeException ex) {
         return new ResponseEntity<>(
             new ErrorResponse("BAD_REQUEST", ex.getMessage()),
@@ -79,23 +82,33 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({
-        AccountDisabledException.class,
-        AccountBlockedException.class
-    })
-    public ResponseEntity<ErrorResponse> handleAccountExceptions(RuntimeException ex) {
+    @ExceptionHandler(AccountDisabledException.class)
+    public ResponseEntity<ErrorResponse> handleAccountSisabledExceptions(AccountDisabledException ex) {
         return new ResponseEntity<>(
-            new ErrorResponse("ACCOUNT_ISSUE", ex.getMessage()),
+            new ErrorResponse("ACCOUNT_DISABLED", "Account not verified"),
             HttpStatus.FORBIDDEN
         );
     }
 
+   
+    
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials() {
-        return new ResponseEntity<>(
-            new ErrorResponse("AUTH_ERROR", "Invalid username or password"),
-            HttpStatus.UNAUTHORIZED
-        );
+    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+        ErrorResponse error = new ErrorResponse("INVALID_CREDENTIALS", "Invalid email or password");
+        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    }
+    
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handledNonEnabledAccountException(DisabledException ex){
+    	ErrorResponse err = new ErrorResponse("ACCOUNT_DISABLED", "User account is disabled.");
+    	return new ResponseEntity<>(err,HttpStatus.FORBIDDEN);
+    }
+    
+    
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponse>handleLockedException(LockedException ex){
+    	ErrorResponse error = new ErrorResponse("ACCOUNT_LOCKED", "User account is blocked.");
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
@@ -121,5 +134,16 @@ public class GlobalExceptionHandler {
             HttpStatus.INTERNAL_SERVER_ERROR
         );
     }
+    
+    @ExceptionHandler(PasswordMismatchException.class)
+    public ResponseEntity<ErrorResponse> handlePasswordMismatch(PasswordMismatchException ex) {
+        return new ResponseEntity<>(
+            new ErrorResponse("PASSWORD_MISMATCH", ex.getMessage()),
+            HttpStatus.BAD_REQUEST
+        );
+    }
+
+    
+    
 
 }
