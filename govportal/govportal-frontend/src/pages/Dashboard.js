@@ -40,10 +40,12 @@ const Dashboard = () => {
                     <div className="mt-4">
                         <h3 className="text-secondary">Admin Actions:</h3>
                         <div className="d-grid gap-2 col-md-6 mx-auto">
+                            {/* <Link to="/admin/verifiers" className="btn btn-outline-primary btn-lg rounded-pill">All Verifiers</Link> */}
                             <Link to="/admin/manage-verifiers" className="btn btn-outline-primary btn-lg rounded-pill">Manage Verifiers</Link>
-                            <Link to="/admin/citizens" className="btn btn-outline-secondary btn-lg rounded-pill">View Citizens</Link>
-                            <Link to="/admin/applications" className="btn btn-outline-info btn-lg rounded-pill">View All Applications</Link>
-                            <Link to="/admin/stats" className="btn btn-outline-warning btn-lg rounded-pill">View System Stats</Link>
+                            <Link to="/admin/manage-user" className="btn btn-outline-primary btn-lg rounded-pill">Manage User/Citizens</Link>
+                            <Link to="/admin/manage-applications" className="btn btn-outline-info btn-lg rounded-pill">Manage Applications</Link>
+                            <Link to="/admin/system-stats" className="btn btn-outline-warning btn-lg rounded-pill">View System Stats</Link>
+                            
                         </div>
                     </div>
                 )}
@@ -65,7 +67,7 @@ const Dashboard = () => {
                             <Link to="/citizen/my-applications" className="btn btn-outline-info btn-lg rounded-pill">View My Applications</Link>
                             <Link to="/citizen/approved-applications" className="btn btn-outline-info btn-lg rounded-pill">View My Approved Applications</Link>
 
-                            <Link to="/profile" className="btn btn-outline-secondary btn-lg rounded-pill">Manage My Profile</Link>
+                            <Link to="/manage-profile" className="btn btn-outline-secondary btn-lg rounded-pill">Manage My Profile</Link>
 
                         </div>
                     </div>
