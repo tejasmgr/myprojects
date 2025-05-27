@@ -1,7 +1,10 @@
 package com.sunbeam.dto.request;
 
+import java.time.LocalDate;
+
 import com.sunbeam.model.User.Designation;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -21,4 +24,13 @@ public class CreateVerifierRequest {
     @NotBlank(message = "Designation is required")
     
     private String designation;
+    
+    private String address;
+    
+    private LocalDate dateOfBirth;
+    
+    private String gender;
+    
+    @Column(unique = true)
+    private String aadharNumber;
 }

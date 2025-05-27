@@ -51,7 +51,7 @@ public class VerifierController {
     }
     
     @GetMapping("/application/details/{applicationId}")
-//    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN') or hasRole('CITIZEN')")
+    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN') or hasRole('CITIZEN')")
     public ResponseEntity<DocumentApplicationDetailsResponse> getDocumentApplicationDetails(
             @PathVariable Long applicationId) {
         DocumentApplicationDetailsResponse applicationDetails = documentService.getDocumentApplicationDetails(applicationId);
@@ -99,6 +99,7 @@ public class VerifierController {
     }
 
     @GetMapping("/pending")
+    @PreAuthorize("hasRole('VERIFIER') or hasRole('ADMIN')")
     public ResponseEntity<Page<DocumentApplicationResponse>> getPendingApplications(@PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(verificationService.getPendingApplications(pageable));
     }
