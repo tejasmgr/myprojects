@@ -4,6 +4,8 @@ import com.sunbeam.dto.request.CreateVerifierRequest;
 import com.sunbeam.dto.request.RegisterRequest;
 import com.sunbeam.dto.response.AdminStatsResponse;
 import com.sunbeam.dto.response.AuthResponse;
+import com.sunbeam.dto.response.DocumentApplicationResponse;
+import com.sunbeam.dto.response.ErrorResponse;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.exception.DatabaseOperationException;
 import com.sunbeam.exception.EmailAlreadyExistsException;
@@ -11,7 +13,10 @@ import com.sunbeam.exception.UserNotFoundException;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.User;
 import com.sunbeam.service.AdminService;
+import com.sunbeam.service.UserService;
+
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,23 +37,35 @@ import java.util.List;
 public class AdminController {
 	@Autowired
     private final AdminService adminService;
+	@Autowired
+	private final UserService userService;
+	
+	
+	@GetMapping("/user/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserProfile(id));
+    }
 
     @PostMapping("/create-verifier")
-    public ResponseEntity<UserResponse> createVerifier(
+    public ResponseEntity<?> createVerifier(
             @Valid @RequestBody CreateVerifierRequest request
     ) {
     	try {
     		 return ResponseEntity.ok(adminService.createVerifierAccount(request));
 		}
     	catch (EmailAlreadyExistsException e) {
-	        return ResponseEntity.status(HttpStatus.CONFLICT).body(null);
+	        return ResponseEntity.status(HttpStatus.CONFLICT).body(new ErrorResponse("EMAIL_EXISTS", "Email is Already Registered"));
 	    }
     	catch (DatabaseOperationException e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("DATABASE_ERROR", "Database error occurred. Please try again."));
 		}
     }
     
-    @GetMapping("/verifiers")
+    
+    
+    
+    
+    @GetMapping("/all-verifiers")
     public ResponseEntity<Page<UserResponse>> getAllVerifiers(@PageableDefault(size = 20) Pageable pageable){
     	try {
     		return ResponseEntity.ok(adminService.getAllVerifiers(pageable));
@@ -93,7 +110,6 @@ public class AdminController {
 		} catch (DatabaseOperationException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
-        
     }
 
     @GetMapping("/stats")
@@ -104,15 +120,60 @@ public class AdminController {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
 		}
     }
+    
+//    @GetMapping("/all-applications")
+//    public ResponseEntity<Page<DocumentApplication>> getAllApplications(
+//    		@PageableDefault(size = 20) Pageable pageable   ,
+//            @RequestParam(required = false) String status
+//    ) {
+//        try {
+//        	return ResponseEntity.ok(adminService.getAllApplicationsWithStatus(status,pageable));
+//		} catch (DatabaseOperationException e) {
+//			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+//		}
+//    }
+//    
+    
+    
 
     @GetMapping("/applications")
-    public ResponseEntity<List<DocumentApplication>> getAllApplications(
+    public ResponseEntity<Page<DocumentApplication>> getAllApplicationsWithStatus(
+    		@PageableDefault(size = 20) Pageable pageable   ,
             @RequestParam(required = false) String status
     ) {
         try {
-        	return ResponseEntity.ok(adminService.getAllApplications(status));
+        	return ResponseEntity.ok(adminService.getAllApplicationsWithStatus(status,pageable));
 		} catch (DatabaseOperationException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
 		}
     }
+    
+    @GetMapping("/applications/desk1")
+    public ResponseEntity<Page<DocumentApplication>> getAllApplicationsOnDesk1(
+    		@PageableDefault(size = 20) Pageable pageable          
+    ) {
+        try {
+        	
+        	return ResponseEntity.ok(adminService.getAllApplicationsOnDesk2("DESK_1",pageable));
+		} catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+    }
+    
+    @GetMapping("/applications/desk2")
+    public ResponseEntity<Page<DocumentApplication>> getAllApplicationsOnDesk2(
+    		@PageableDefault(size = 20) Pageable pageable 
+    ) {
+        try {
+        	
+        	return ResponseEntity.ok(adminService.getAllApplicationsOnDesk2("DESK_2",pageable));
+		} catch (DatabaseOperationException e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		}
+    }
+    
+    
+    
+    
+    
 }

@@ -36,11 +36,13 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
 	private final JwtAuthFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final CustomAuthenticationEntryPoint customEntryPoint;
     
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     		return http.csrf(csrf -> csrf.disable())
     			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+    			.exceptionHandling(ex -> ex.authenticationEntryPoint(customEntryPoint)) 
     			.authorizeHttpRequests(auth -> auth
     					.requestMatchers(
 		                        "/api/auth/**",
@@ -64,6 +66,7 @@ public class SecurityConfig {
     					
 		                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 		                .requestMatchers("/api/verifier/**").hasAnyRole("VERIFIER", "ADMIN")
+		                .requestMatchers("/api/user/change-password").authenticated()
 		                .anyRequest().authenticated()
                 
         ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -96,23 +99,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
     
-//    @Bean
-//    public UserDetailsService userDetailsService(UserRepository userRepository) {
-//        return email -> {
-//            User user = userRepository.findByEmail(email)
-//                    .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
-//            return new CustomUserDetails(user);
-//        };
-//    }
-    
-//    @Component
-//    public class PasswordHasher {
-//        public PasswordHasher() {
-//            String rawPassword = "Admin@123";
-//            String hashedPassword = new BCryptPasswordEncoder().encode(rawPassword);
-//            System.out.println("BCrypt hash for Admin@123: " + hashedPassword);
-//        }
-//    }
 
     
 }
