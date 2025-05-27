@@ -90,7 +90,7 @@ const ApprovedApplications = () => {
         );
     }
 
-    if (approvedApplications.length === 0 && totalElements === 0) {
+    if (approvedApplications.length === 0 && loading === false) {
         return (
             <div className="container mt-5 text-center">
                 <div className="alert alert-info rounded-3" role="alert">

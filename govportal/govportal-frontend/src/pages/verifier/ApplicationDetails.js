@@ -35,7 +35,7 @@ const ApplicationDetails = () => {
 
   useEffect(() => {
     // Redirect if not a verifier or not logged in
-    if (!user || user.role !== "VERIFIER") {
+    if (!user || !user.role === (("VERIFIER") || ("ADMIN"))) {
       navigate("/dashboard");
       return;
     }
@@ -326,7 +326,7 @@ const ApplicationDetails = () => {
           ) : (
             <p className="text-muted">No additional form data provided.</p>
           )}
-          <hr />
+          <hr/>
 
           <h4 className="card-title text-primary mb-3">Supporting Documents</h4>
           {documentsToDisplay && documentsToDisplay.length > 0 ? (
@@ -408,7 +408,7 @@ const ApplicationDetails = () => {
       {/* Approve Modal */}
       {showApproveModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-box">
             <button
               className="btn btn-sm btn-secondary float-end"
               onClick={handleCloseApproveModal}
@@ -447,7 +447,7 @@ const ApplicationDetails = () => {
       {/* Success Modal */}
       {showSuccessModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-box">
             <div className="modal-header">
               <h5 className="modal-title text-success">Approval Successful!</h5>
             </div>
@@ -473,7 +473,7 @@ const ApplicationDetails = () => {
       {/* Reject Modal */}
       {showRejectModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-box">
             <button
               className="btn btn-sm btn-secondary float-end"
               onClick={handleCloseRejectModal}
@@ -513,7 +513,7 @@ const ApplicationDetails = () => {
       {/* Reject Success Modal */}
       {showRejectSuccessModal && (
         <div className="modal-overlay">
-          <div className="modal-content">
+          <div className="modal-box">
             <div className="modal-header">
               <h5 className="modal-title text-danger">Rejection Successful!</h5>
             </div>
@@ -539,7 +539,7 @@ const ApplicationDetails = () => {
       <div className="text-center mt-4">
         <button
           className="btn btn-secondary rounded-pill px-4 py-2"
-          onClick={() => navigate("/verifier/dashboard")}
+          onClick={() => navigate("/dashboard")}
         >
           Back to Dashboard
         </button>

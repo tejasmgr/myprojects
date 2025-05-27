@@ -19,7 +19,7 @@ const PendingApplications = () => {
   // Fetch applications based on current page
   useEffect(() => {
     // Redirect if not a verifier or not logged in
-    if (!user || user.role !== "VERIFIER") {
+    if (!user || user.role !== "VERIFIER" ) {
       navigate("/dashboard"); // Redirect to dashboard if not authorized
       return;
     }
@@ -103,7 +103,7 @@ const PendingApplications = () => {
     );
   }
 
-  if (pendingApplications.length === 0 && totalElements === 0) {
+  if (pendingApplications.length === 0 && loading === false) {
     return (
       <div className="container mt-5 text-center">
         <div className="alert alert-info rounded-3" role="alert">
@@ -213,6 +213,16 @@ const PendingApplications = () => {
           Showing {pendingApplications.length} of {totalElements} applications.
         </p>
       )}
+
+      <div className="text-center mt-4">
+        <button
+          className="btn btn-outline-primary rounded-pill px-4 py-2"
+          onClick={() => navigate("/admin/view-all-applications")}
+        >
+          Back to All Applications
+        </button>
+      </div>
+
     </div>
   );
 };
