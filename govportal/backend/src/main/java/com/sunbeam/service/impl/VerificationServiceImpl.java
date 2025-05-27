@@ -108,7 +108,7 @@ public class VerificationServiceImpl implements VerificationService {
 		User verifier = securityUtils.getCurrentUser();
 		Page<DocumentApplication> applicationsList = null;
 		System.out.println("Inside Sevice of pending APplicationswith user name "+verifier.getFullName());
-		if (verifier.getDesignation() == User.Designation.JUNIOR_VERIFIER) {
+		if (verifier.getDesignation() == User.Designation.JUNIOR_VERIFIER ) {
 			System.out.println("in branch of junior verifier ");
 			applicationsList = documentRepository.findByCurrentDesk("DESK_1", pageable);
 		} else if (verifier.getDesignation() == User.Designation.SENIOR_VERIFIER) {

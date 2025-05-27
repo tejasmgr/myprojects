@@ -44,7 +44,7 @@ const RegisterPage = () => {
 
         try {
             // Make API call to your backend's register endpoint
-            const responseData = await unauthenticatedFetch('/auth/register', {
+            await unauthenticatedFetch('/auth/register', { // Removed unused responseData
                 method: 'POST',
                 body: JSON.stringify(dataToSend),
             });
@@ -62,7 +62,11 @@ const RegisterPage = () => {
             } else if (err.message.includes('Validation failed')) {
                 // For backend validation errors (e.g., password format)
                 setError(err.message);
-            } else {
+            }else if(err.message.includes('Failed to fetch')){
+                setError("Failed to Connect the server");
+            }
+            
+            else {
                 setError('An unexpected error occurred during registration. Please try again later.');
             }
         } finally {
