@@ -1,5 +1,6 @@
 package com.sunbeam.service;
 
+import com.sunbeam.dto.request.ChangePasswordRequest;
 import com.sunbeam.dto.request.UserUpdateRequest;
 import com.sunbeam.dto.response.UserResponse;
 import com.sunbeam.model.ApiResponse;
@@ -11,10 +12,10 @@ import java.util.List;
 import java.util.Optional;
 
 public interface UserService {
-    User getCurrentUser();
+	UserResponse getCurrentUser();
     UserResponse getUserProfile(Long userId);
 //    List<User> getAllVerifiers();
-
+    void changePassword(ChangePasswordRequest req);
 	UserResponse getCurrentUserProfile();
 	ApiResponse updateUserProfile(@Valid UserUpdateRequest request);
 }
