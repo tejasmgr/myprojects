@@ -2,7 +2,8 @@
 // This file sets up a basic API client using fetch.
 // You could replace this with Axios for more advanced features like interceptors.
 
-const API_BASE_URL = "http://localhost:8080/api"; // Your backend API base URL
+console.log(`${process.env.REACT_APP_API_URL}`)
+const API_BASE_URL = `${process.env.REACT_APP_API_URL}/api`; // Your backend API base URL
 
 // Helper function to make authenticated API requests
 export const authenticatedFetch = async (url, options = {}, returnRaw = false) => {
