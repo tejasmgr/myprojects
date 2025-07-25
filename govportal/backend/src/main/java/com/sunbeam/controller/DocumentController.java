@@ -10,17 +10,13 @@ import com.sunbeam.exception.InvalidDocumentTypeException;
 import com.sunbeam.exception.ResourceNotFoundException;
 import com.sunbeam.model.CustomUserDetails;
 import com.sunbeam.model.DocumentApplication;
-import com.sunbeam.model.DocumentApplication.DocumentType;
 import com.sunbeam.model.User;
-import com.sunbeam.service.DocumentService;
-import com.sunbeam.service.VerificationWorkflowService;
 import com.sunbeam.service.impl.DocumentServiceImpl;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.bind.DefaultValue;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,10 +24,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -51,7 +44,7 @@ public class DocumentController {
 
 	private final DocumentServiceImpl documentService;
 	
-//	private final VerificationWorkflowService workflowService;
+
 	@Autowired
 	private ObjectMapper objectMapper;
 	Logger logger = LoggerFactory.getLogger(DocumentController.class);
