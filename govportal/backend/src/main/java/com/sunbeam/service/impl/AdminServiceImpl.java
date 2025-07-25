@@ -131,12 +131,6 @@ public class AdminServiceImpl implements AdminService {
         return appRepository.findByStatus(DocumentApplication.ApplicationStatus.valueOf(status.toUpperCase()),pageable);
     }
     
-   
-    
-    
-    
-    
-    
 
     private UserResponse mapToUserResponse(User user) {
         return UserResponse.builder()

@@ -64,7 +64,7 @@ public class PdfGeneratorServiceImpl implements PdfGeneratorService {
         addTableRow(table, "Issue Date:", LocalDate.now().format(DATE_FORMATTER));
 
         String formDataJson = application.getFormData();
-
+        			//		code for indidvidual docuemnt / certificate type
         try {
             switch (application.getDocumentType()) {
                 case INCOME: {

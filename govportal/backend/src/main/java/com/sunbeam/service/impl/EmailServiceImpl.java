@@ -25,10 +25,8 @@ public class EmailServiceImpl implements EmailService {
     public void sendVerificationEmail(String toEmail, String token) {
         Context context = new Context();
         context.setVariable("verificationLink", "http://localhost:3000/verify-email?token=" + token);
-        context.setVariable("token", token); // Set the token separately
-
+        context.setVariable("token", token); // Setting the token separately for manual way
         String htmlContent = templateEngine.process("email/verification", context);
-
         sendHtmlEmail(toEmail, "Verify Your Email", htmlContent);
     }
 

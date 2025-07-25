@@ -66,13 +66,12 @@ public class SecurityConfig {
     					
 		                .requestMatchers("/api/admin/**").hasRole("ADMIN")
 		                .requestMatchers("/api/verifier/**").hasAnyRole("VERIFIER", "ADMIN")
-		                .requestMatchers("/api/user/change-password").authenticated()
+		                .requestMatchers("/api/user/**").authenticated()
 		                .anyRequest().authenticated()
                 
         ).sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
     	.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
     	.userDetailsService(userDetailsService).build();
-    	
     }
     
     @Bean
