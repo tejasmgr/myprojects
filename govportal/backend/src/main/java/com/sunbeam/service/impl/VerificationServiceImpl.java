@@ -12,6 +12,7 @@ import com.sunbeam.repository.DocumentProofRepository;
 import com.sunbeam.repository.UserRepository;
 import com.sunbeam.security.SecurityUtils;
 import com.sunbeam.service.AuditService;
+import com.sunbeam.service.DocumentService;
 import com.sunbeam.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -45,6 +46,7 @@ public class VerificationServiceImpl implements VerificationService {
 	private final AuditService auditService;
 	private final ModelMapper modelMapper;
 	private final PdfGeneratorServiceImpl pdfService;
+	private final DocumentService documentService;
 	@Autowired
     private DocumentProofRepository documentProofRepository;
 
@@ -66,26 +68,7 @@ public class VerificationServiceImpl implements VerificationService {
      * @throws IOException If there's an error loading the file from the file system.
      */
 	public Resource viewDocumentProof(Long documentProofId) throws IOException {
-        // 1. Retrieve the DocumentProof entity from the database
-        DocumentProof documentProof = documentProofRepository.findById(documentProofId)
-                .orElseThrow(() -> new ResourceNotFoundException("DocumentProof not found with ID: " + documentProofId));
-
-        // 2. Construct the Path to the actual file on the server's file system
-        Path filePath = Paths.get(documentProof.getFilePath()); // documentProof.getFilePath() should return "D:\\CDAC\\..."
-
-        Resource resource;
-        try {
-            resource = new UrlResource(filePath.toUri()); // Convert local file path to a URL resource
-        } catch (MalformedURLException ex) {
-            throw new RuntimeException("Error creating URL for file: " + documentProof.getFileName(), ex);
-        }
-
-        // 3. Check if the file exists and is readable
-        if (!resource.exists() || !resource.isReadable()) {
-            throw new ResourceNotFoundException("File not found or not readable: " + documentProof.getFileName());
-        }
-
-        return resource;
+		return documentService.viewDocumentProof(documentProofId);
     }
 	
 	/**

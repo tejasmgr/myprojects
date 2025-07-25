@@ -242,6 +242,7 @@ public class DocumentServiceImpl implements DocumentService {
 	 * @throws IOException               If there's an error loading the file from
 	 *                                   the file system.
 	 */
+	@Override
 	public Resource viewDocumentProof(Long documentProofId) throws IOException {
 		// 1. Retrieve the DocumentProof entity from the database
 		DocumentProof documentProof = documentProofRepository.findById(documentProofId).orElseThrow(

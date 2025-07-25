@@ -6,6 +6,8 @@ import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.DocumentProof;
 import com.sunbeam.model.User;
+
+import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.multipart.MultipartFile;
@@ -35,6 +37,8 @@ public interface DocumentService {
 //	String uploadSupportingDocument(Long applicationId, MultipartFile file);
 
 	DocumentProof getDocumentProof(Long proofId);
+	
+	Resource viewDocumentProof(Long documentProofId) throws IOException;
 
 	Page<DocumentApplicationResponse> getApprovalPassesApplicationsOfCitizen(Pageable pageable);
 }
