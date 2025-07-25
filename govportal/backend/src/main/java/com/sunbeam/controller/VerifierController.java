@@ -3,17 +3,12 @@ import com.sunbeam.dto.response.DocumentApplicationDetailsResponse;
 import com.sunbeam.dto.response.DocumentApplicationResponse;
 import com.sunbeam.dto.response.VerificationStatsResponse;
 import com.sunbeam.exception.ResourceNotFoundException;
-import com.sunbeam.model.DocumentApplication;
-import com.sunbeam.model.DocumentProof;
 import com.sunbeam.service.DocumentService;
 import com.sunbeam.service.VerificationService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.tika.metadata.HttpHeaders;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -23,10 +18,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -40,8 +32,7 @@ public class VerifierController {
     private final VerificationService verificationService;
     private final DocumentService documentService;
     
-    @Value("${app.upload.dir}") // From application.properties
-	private String fileStorageLocation;
+
     
     
     @GetMapping("/application/{id}")

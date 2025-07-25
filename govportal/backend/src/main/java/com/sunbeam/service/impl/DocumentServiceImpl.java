@@ -12,30 +12,21 @@ import com.sunbeam.exception.*;
 import com.sunbeam.model.*;
 import com.sunbeam.repository.DocumentApplicationRepository;
 import com.sunbeam.repository.DocumentProofRepository;
-import com.sunbeam.repository.UserRepository;
 import com.sunbeam.security.SecurityUtils;
-import com.sunbeam.service.AuditService;
 import com.sunbeam.service.DocumentService;
-import com.sunbeam.service.FileStorageService;
-import com.sunbeam.service.PdfGeneratorService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,11 +40,7 @@ import org.slf4j.LoggerFactory;
 public class DocumentServiceImpl implements DocumentService {
 
 	private final DocumentApplicationRepository documentRepository;
-	private final UserRepository userRepository;
-	private final FileStorageService fileStorageService;
-	private final PdfGeneratorService pdfGenerator;
-//	private final VerificationWorkflowService workflowService;
-	private final AuditService auditService;
+
 	private final SecurityUtils securityUtils;
 	private final ModelMapper modelMapper;
 	private final DocumentProofRepository documentProofRepository;
@@ -66,8 +53,6 @@ public class DocumentServiceImpl implements DocumentService {
 	@Value("${oci.objectstorage.namespace-name}")
 	private String namespace;
 
-	@Value("${app.upload.dir}") // From application.properties
-	private String uploadDir;
 	private static final Logger logger = LoggerFactory.getLogger(DocumentServiceImpl.class);
 
 	@Override
