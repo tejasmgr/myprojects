@@ -59,6 +59,7 @@ public class AdminController {
     	catch (DatabaseOperationException e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse("DATABASE_ERROR", "Database error occurred. Please try again."));
 		}
+    	
     }
     
     

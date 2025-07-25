@@ -38,8 +38,6 @@ import org.slf4j.LoggerFactory;
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
-	
-	
 
     private final AuthService authService;
     private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
