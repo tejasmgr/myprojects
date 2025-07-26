@@ -1,9 +1,7 @@
 package com.sunbeam.service;
 
-import com.sunbeam.dto.request.ChangePasswordRequest;
 import com.sunbeam.dto.request.LoginRequest;
 import com.sunbeam.dto.request.RegisterRequest;
-import com.sunbeam.dto.request.ResetPasswordRequest;
 import com.sunbeam.dto.response.AuthResponse;
 
 public interface AuthService {

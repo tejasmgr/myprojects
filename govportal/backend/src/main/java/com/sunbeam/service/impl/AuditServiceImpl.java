@@ -1,9 +1,7 @@
 package com.sunbeam.service.impl;
 
 import com.sunbeam.dto.response.AuditLogResponse;
-import com.sunbeam.exception.ResourceNotFoundException;
 import com.sunbeam.model.AuditLog;
-import com.sunbeam.model.DocumentApplication;
 import com.sunbeam.model.User;
 import com.sunbeam.repository.AuditLogRepository;
 import com.sunbeam.repository.DocumentApplicationRepository;
@@ -12,14 +10,10 @@ import com.sunbeam.security.SecurityUtils;
 import com.sunbeam.service.AuditService;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-
-import java.awt.print.Pageable;
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
