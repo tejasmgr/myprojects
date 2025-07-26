@@ -1,7 +1,6 @@
 package com.sunbeam.dto.response;
 
 import com.sunbeam.model.AuditLog.ActionType;
-import com.sunbeam.dto.response.UserResponse;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
