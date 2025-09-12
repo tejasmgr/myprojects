@@ -42,7 +42,6 @@ import jakarta.persistence.*;
   private String contentType;
  
 
-  //  You might want to add fields like uploadDate, uploader (if different from applicant)
  
 
  }
