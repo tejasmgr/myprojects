@@ -134,9 +134,7 @@ const MyApplications = () => {
               <th scope="col" className="py-3">
                 Document Type
               </th>
-              <th scope="col" className="py-3">
-                Purpose
-              </th>
+
               <th scope="col" className="py-3">
                 Status
               </th>
@@ -153,18 +151,16 @@ const MyApplications = () => {
               <tr key={app.id}>
                 <td>{app.id}</td>
                 <td>{app.documentType}</td>
-                <td>{app.purpose}</td>
                 <td>
                   <span
-                    className={`badge ${
-                      app.status === "PENDING"
-                        ? "bg-warning text-dark"
-                        : app.status === "APPROVED"
+                    className={`badge ${app.status === "PENDING"
+                      ? "bg-warning text-dark"
+                      : app.status === "APPROVED"
                         ? "bg-success"
                         : app.status === "REJECTED"
-                        ? "bg-danger"
-                        : "bg-secondary"
-                    } rounded-pill px-3 py-2`}
+                          ? "bg-danger"
+                          : "bg-secondary"
+                      } rounded-pill px-3 py-2`}
                   >
                     {app.status}
                   </span>
@@ -175,7 +171,7 @@ const MyApplications = () => {
                   <button
                     className="btn btn-sm btn-outline-info rounded-pill"
                     onClick={() => handleReviewClick(app.id)}
-                    // In a real app, you'd navigate to a detail page: navigate(`/citizen/applications/${app.id}`)
+                  // In a real app, you'd navigate to a detail page: navigate(`/citizen/applications/${app.id}`)
                   >
                     View Details
                   </button>
@@ -213,9 +209,8 @@ const MyApplications = () => {
               </li>
             ))}
             <li
-              className={`page-item ${
-                currentPage === totalPages - 1 ? "disabled" : ""
-              }`}
+              className={`page-item ${currentPage === totalPages - 1 ? "disabled" : ""
+                }`}
             >
               <button
                 className="page-link"
