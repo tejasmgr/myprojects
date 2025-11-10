@@ -1,11 +1,110 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Email Verification</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background-color: #f4f6f8;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #0a5ad9;
+            color: #ffffff;
+            text-align: center;
+            padding: 20px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+        .content {
+            padding: 30px;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #0a5ad9;
+            color: #ffffff !important;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #094cc4;
+        }
+        .info-box {
+            background-color: #f1f6ff;
+            border-left: 4px solid #0a5ad9;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+        .token-box {
+            background-color: #fef6e4;
+            border-left: 4px solid #f5b700;
+            padding: 15px;
+            border-radius: 6px;
+            color: #333333;
+            margin-top: 10px;
+        }
+        .footer {
+            text-align: center;
+            font-size: 13px;
+            color: #777777;
+            background-color: #f9fafb;
+            padding: 15px;
+        }
+    </style>
+</head>
 <body>
-    <h2>Email Verification</h2>
-    <p>Click the link below to verify your email:</p>
-    <a th:href="${verificationLink}" th:text="${verificationLink}"></a>
-	
-    <p>If you prefer, use this token for verification:</p>
-    <p><strong th:text="${token}"></strong></p>
+    <div class="container">
+        <div class="header">
+            <h1>Government Document Portal</h1>
+        </div>
+
+        <div class="content">
+            <p>Dear Citizen,</p>
+            <p>Thank you for registering with the <strong>GovPortal</strong>.  
+               To complete your registration and activate your account, please verify your email address by clicking the button below.</p>
+
+            <div class="info-box">
+                <a th:href="${verificationLink}" class="btn">Verify My Email</a>
+            </div>
+
+            <p>If the button above doesn’t work, copy and paste the following link into your browser:</p>
+            <p>
+                <a th:href="${verificationLink}" th:text="${verificationLink}" style="word-break: break-all; color:#0a5ad9;"></a>
+            </p>
+
+            <p>If you prefer, use this token for manual verification:</p>
+            <div class="token-box">
+                <strong th:text="${token}">123456</strong>
+            </div>
+
+            <p>This verification link will expire in <strong>24 hours</strong>.  
+               If you didn’t create an account, please ignore this email.</p>
+
+            <p>Warm regards,<br><strong>GovPortal Support Team</strong></p>
+        </div>
+
+        <div class="footer">
+            <p>This is an automated message. Do not reply to this email.</p>
+            <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> Government of India</p>
+        </div>
+    </div>
 </body>
 </html>

@@ -6,6 +6,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
@@ -21,25 +22,29 @@ public class EmailServiceImpl implements EmailService {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
 
+    @Value("${frontend.url}")
+    private String frontendUrl; 
+    
     @Override
     public void sendVerificationEmail(String toEmail, String token) {
         Context context = new Context();
-        context.setVariable("verificationLink", "http://localhost:3000/verify-email?token=" + token);
-        context.setVariable("token", token); // Setting the token separately for manual way
+        String verificationLink = frontendUrl + "/verify-email?token=" + token;
+        context.setVariable("verificationLink", verificationLink);
+        context.setVariable("token", token);
+
         String htmlContent = templateEngine.process("email/verification", context);
         sendHtmlEmail(toEmail, "Verify Your Email", htmlContent);
     }
 
+
     @Override
     public void sendPasswordResetEmail(String toEmail, String token) {
         Context context = new Context();
-        context.setVariable("resetLink", 
-            "http://localhost:3000/reset-password?token=" + token);
-        context.setVariable("resetToken", 
-                ""+ token);
+        String resetLink = frontendUrl + "/reset-password?token=" + token;
+        context.setVariable("resetLink", resetLink);
+        context.setVariable("token", token);
 
         String htmlContent = templateEngine.process("email/password-reset", context);
-
         sendHtmlEmail(toEmail, "Password Reset Request", htmlContent);
     }
 
@@ -48,7 +53,7 @@ public class EmailServiceImpl implements EmailService {
         Context context = new Context();
         context.setVariable("message", body);
 
-        String htmlContent = templateEngine.process("email/status-update", context);
+        String htmlContent = templateEngine.process("email/status-email", context);
 
         sendHtmlEmail(toEmail, subject, htmlContent);
     }

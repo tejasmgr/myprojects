@@ -13,6 +13,7 @@ import com.sunbeam.repository.UserRepository;
 import com.sunbeam.security.SecurityUtils;
 import com.sunbeam.service.AuditService;
 import com.sunbeam.service.DocumentService;
+import com.sunbeam.service.EmailService;
 import com.sunbeam.service.VerificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -47,6 +48,7 @@ public class VerificationServiceImpl implements VerificationService {
 	private final ModelMapper modelMapper;
 	private final PdfGeneratorServiceImpl pdfService;
 	private final DocumentService documentService;
+	private final EmailService emailService;
 	@Autowired
     private DocumentProofRepository documentProofRepository;
 
@@ -106,49 +108,84 @@ public class VerificationServiceImpl implements VerificationService {
 	@Override
 	@Transactional
 	public DocumentApplicationResponse approveApplication(Long applicationId, String remarks) {
-		DocumentApplication application = getApplicationById(applicationId);
-		User verifier = securityUtils.getCurrentUser();
-		if (verifier.getDesignation() == User.Designation.JUNIOR_VERIFIER
-				&& application.getCurrentDesk().equals("DESK_1")) {
-			application.setCurrentDesk("DESK_2");
-//			application.setStatus(DocumentApplication.ApplicationStatus.UNDER_REVIEW);
-			
-		} else if (verifier.getDesignation() == User.Designation.SENIOR_VERIFIER
-				&& application.getCurrentDesk().equals("DESK_2")) {
-			application.setCurrentDesk("UNDER_CERTIFICATE_GENERATION");
-			application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
-		}
-		application.setResolvedDate(LocalDateTime.now());
-		application.setApprovedBy(verifier);
-		DocumentApplication reviewedApplication = documentRepository.save(application);
-		if (application.getCurrentDesk().equals("UNDER_CERTIFICATE_GENERATION")) {
-			try {
-			    byte[] pdf = pdfService.generateCertificate(reviewedApplication);
-			    application.setCertificatePdf(pdf); // if you decide to save it
-			} catch (IOException e) {
-			    auditService.logActivity("PDF_GENERATION_FAILED", "Failed for Application " + applicationId);
-			    throw new RuntimeException("Failed to generate certificate PDF", e);
-			}
-		}
-		auditService.logActivity("DOCUMENT_APPROVED", String.format("Application %d approved by %s. Remarks: %s",
-				applicationId, verifier.getEmail(), remarks));
-		return modelMapper.map(reviewedApplication, DocumentApplicationResponse.class);
+	    DocumentApplication application = getApplicationById(applicationId);
+	    User verifier = securityUtils.getCurrentUser();
+
+	    String emailSubject = "GovPortal Application Status Update";
+
+	    if (verifier.getDesignation() == User.Designation.JUNIOR_VERIFIER
+	            && application.getCurrentDesk().equals("DESK_1")) {
+
+	        application.setCurrentDesk("DESK_2");
+	        application.setApprovedBy(verifier);
+//	        application.setStatus(DocumentApplication.ApplicationStatus.UNDER_REVIEW);
+
+	        documentRepository.save(application);
+	        auditService.logActivity("MOVED_TO_DESK_2", "Application moved to Desk 2 by " + verifier.getEmail());
+
+	        // ✅ Send email
+	        notifyApplicant(application, emailSubject,
+	                "Your application has successfully passed the initial review and moved to Desk 2 for senior verification.");
+
+	    } else if (verifier.getDesignation() == User.Designation.SENIOR_VERIFIER
+	            && application.getCurrentDesk().equals("DESK_2")) {
+
+	        application.setCurrentDesk("UNDER_CERTIFICATE_GENERATION");
+	        application.setStatus(DocumentApplication.ApplicationStatus.APPROVED);
+	        application.setResolvedDate(LocalDateTime.now());
+	        application.setApprovedBy(verifier);
+
+	        DocumentApplication reviewedApplication = documentRepository.save(application);
+
+	        try {
+	            byte[] pdf = pdfService.generateCertificate(reviewedApplication);
+	            application.setCertificatePdf(pdf);
+	        } catch (IOException e) {
+	            auditService.logActivity("PDF_GENERATION_FAILED", "Failed for Application " + applicationId);
+	            throw new RuntimeException("Failed to generate certificate PDF", e);
+	        }
+
+	        auditService.logActivity("DOCUMENT_APPROVED",
+	                String.format("Application %d approved by %s. Remarks: %s",
+	                        applicationId, verifier.getEmail(), remarks));
+
+	        // ✅ Send email
+	        notifyApplicant(application, emailSubject,
+	                "Your application has been approved. You can now download your certificate from your account.");
+
+	    } else {
+	        throw new UnsupportedOperationException("Invalid application state or verifier role.");
+	    }
+
+	    return modelMapper.map(application, DocumentApplicationResponse.class);
 	}
+
 
 	@Override
 	@Transactional
 	public DocumentApplicationResponse rejectApplication(Long applicationId, String remarks) {
-		DocumentApplication application = getApplicationById(applicationId);
-		User currentUser = securityUtils.getCurrentUser();
-		application.setCurrentDesk("APPLICANT");
-		application.setStatus(DocumentApplication.ApplicationStatus.REJECTED);
-		application.setResolvedDate(LocalDateTime.now());
-		application.setRejectionReason(remarks);
-		DocumentApplication rejectedApplication = documentRepository.save(application);
-		auditService.logActivity("DOCUMENT_REJECTED", String.format("Application %d rejected by %s. Remarks: %s",
-				applicationId, currentUser.getEmail(), remarks));
-		return modelMapper.map(rejectedApplication, DocumentApplicationResponse.class);
+	    DocumentApplication application = getApplicationById(applicationId);
+	    User currentUser = securityUtils.getCurrentUser();
+
+	    application.setCurrentDesk("APPLICANT");
+	    application.setStatus(DocumentApplication.ApplicationStatus.REJECTED);
+	    application.setResolvedDate(LocalDateTime.now());
+	    application.setRejectionReason(remarks);
+
+	    DocumentApplication rejectedApplication = documentRepository.save(application);
+
+	    auditService.logActivity("DOCUMENT_REJECTED",
+	            String.format("Application %d rejected by %s. Remarks: %s",
+	                    applicationId, currentUser.getEmail(), remarks));
+
+	    // ✅ Send email
+	    notifyApplicant(application,
+	            "GovPortal Application Rejected",
+	            "Unfortunately, your application has been rejected. Reason: " + remarks);
+
+	    return modelMapper.map(rejectedApplication, DocumentApplicationResponse.class);
 	}
+
 
 	@Override
 	@Transactional
@@ -201,6 +238,12 @@ public class VerificationServiceImpl implements VerificationService {
 	            modelMapper.map(application, DocumentApplicationResponse.class)
 	    );
 	    return ResponseEntity.ok(responsePage);
+	}
+
+	
+	private void notifyApplicant(DocumentApplication application, String subject, String message) {
+	    String email = application.getApplicant().getEmail();
+	    emailService.sendApplicationStatusUpdate(email, subject, message);
 	}
 
 	

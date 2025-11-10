@@ -2,7 +2,7 @@
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Password Reset Request</title>
+    <title>Application Status Update</title>
     <style>
         body {
             font-family: "Segoe UI", Arial, sans-serif;
@@ -33,25 +33,13 @@
             color: #333333;
             line-height: 1.6;
         }
-        .info-box {
+        .message-box {
             background-color: #f1f6ff;
             border-left: 4px solid #0a5ad9;
             padding: 15px;
             margin: 20px 0;
             border-radius: 6px;
-        }
-        .btn {
-            display: inline-block;
-            background-color: #0a5ad9;
-            color: white !important;
-            padding: 12px 25px;
-            border-radius: 5px;
-            text-decoration: none;
-            font-weight: 600;
-            margin-top: 10px;
-        }
-        .btn:hover {
-            background-color: #094cc4;
+            color: #333333;
         }
         .footer {
             text-align: center;
@@ -60,13 +48,18 @@
             background-color: #f9fafb;
             padding: 15px;
         }
-        .token-box {
-            background-color: #fef6e4;
-            border-left: 4px solid #f5b700;
-            padding: 15px;
-            border-radius: 6px;
-            color: #333333;
-            margin-top: 10px;
+        .footer a {
+            color: #0a5ad9;
+            text-decoration: none;
+        }
+        .btn {
+            display: inline-block;
+            margin-top: 20px;
+            background-color: #0a5ad9;
+            color: white !important;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
         }
     </style>
 </head>
@@ -75,33 +68,24 @@
         <div class="header">
             <h1>Government Document Portal</h1>
         </div>
-
         <div class="content">
             <p>Dear Citizen,</p>
-            <p>We received a request to reset your password. Click the button below to proceed.  
-               This link will remain valid for <strong>2 hours</strong>.</p>
+            <p>Your application status has been updated. Please find the details below:</p>
 
-            <div class="info-box">
-                <a th:href="${resetLink}" class="btn">Reset Your Password</a>
+            <div class="message-box">
+                <p th:text="${message}">Your application has been approved successfully.</p>
             </div>
 
-            <p>If the button above doesn’t work, you can copy and paste the following link into your browser:</p>
-            <p>
-                <a th:href="${resetLink}" th:text="${resetLink}" style="word-break: break-all; color:#0a5ad9;"></a>
-            </p>
+            <p>You can view your application or download your issued document by visiting your account.</p>
 
-            <p>If you prefer, use this token for verification:</p>
-            <div class="token-box">
-                <strong th:text="${token}">123456</strong>
-            </div>
+            <!-- Fixed th:href -->
+            <a th:href="@{${frontendUrl}/login}" class="btn">Go to Portal</a>
 
-            <p>If you didn’t request this reset, please ignore this email — your account remains secure.</p>
-
-            <p>Thank you,<br><strong>GovPortal Security Team</strong></p>
+            <p>Thank you for using our Government Document Issuance Portal.</p>
+            <p>Best regards,<br><strong>GovPortal Team</strong></p>
         </div>
-
         <div class="footer">
-            <p>This is an automated message. Do not reply to this email.</p>
+            <p>This is an automated message. Please do not reply to this email.</p>
             <p>&copy; <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}"></span> Government of India</p>
         </div>
     </div>

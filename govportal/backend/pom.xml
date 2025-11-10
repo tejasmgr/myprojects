@@ -42,20 +42,7 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<exclusions>
-            <!-- Exclude Jakarta EE to avoid Jersey 3.x -->
-            <exclusion>
-                <groupId>jakarta.ws.rs</groupId>
-                <artifactId>jakarta.ws.rs-api</artifactId>
-            </exclusion>
-            <!-- Exclude Jersey 3.x dependencies -->
-            <exclusion>
-                <groupId>org.glassfish.jersey.core</groupId>
-                <artifactId>jersey-common</artifactId>
-            </exclusion>
-        </exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -100,32 +87,12 @@
 			<version>0.11.5</version>
 			<scope>runtime</scope>
 		</dependency>
-		
-		
-		<!--<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-boot-starter</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-
-		
-		<dependency>
-<groupId>io.springfox</groupId>
-<artifactId>springfox-swagger-ui</artifactId>
-<version>3.0.0</version>
-</dependency>-->
-
-
-
-		<!-- https://mvnrepository.com/artifact/com.itextpdf/itext-core -->
 		<!-- For PDF generation -->
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
 			<version>2.7.0</version>
 		</dependency>
-		
-		
 		<dependency>
 			<groupId>com.itextpdf</groupId>
 			<artifactId>kernel</artifactId>
@@ -185,13 +152,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
-		
-		
-		 <dependency>
-        <groupId>com.oracle.oci.sdk</groupId>
-        <artifactId>oci-java-sdk-objectstorage</artifactId>
-    </dependency>
-    
     <!-- https://mvnrepository.com/artifact/software.amazon.awssdk/s3 -->
 <dependency>
     <groupId>software.amazon.awssdk</groupId>
@@ -199,61 +159,12 @@
     <version>2.37.1</version>
     <scope>compile</scope>
 </dependency>
-    
-    
-    <!-- Add Jersey HTTP client dependency -->
-    <dependency>
-        <groupId>com.oracle.oci.sdk</groupId>
-        <artifactId>oci-java-sdk-common-httpclient-jersey</artifactId>
-    </dependency>
-     <!-- Add JAX-RS API dependency -->
-    <dependency>
-        <groupId>javax.ws.rs</groupId>
-        <artifactId>javax.ws.rs-api</artifactId>
-        <version>2.1.1</version> <!-- Compatible with OCI SDK 3.44.0 -->
-    </dependency>
-    <!-- Jersey client dependencies -->
-    <dependency>
-        <groupId>org.glassfish.jersey.core</groupId>
-        <artifactId>jersey-client</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.core</groupId>
-        <artifactId>jersey-common</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.glassfish.jersey.inject</groupId>
-        <artifactId>jersey-hk2</artifactId>
-    </dependency>
-		
-
-
 	</dependencies>
-	
-	
 	<dependencyManagement>
-    <dependencies>
-       <dependency>
-            <groupId>com.oracle.oci.sdk</groupId>
-            <artifactId>oci-java-sdk-bom</artifactId>
-            <version>3.44.0</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
-        <!-- Jersey BOM to ensure consistent Jersey 2.x versions -->
-        <dependency>
-            <groupId>org.glassfish.jersey</groupId>
-            <artifactId>jersey-bom</artifactId>
-            <version>2.39.1</version>
-            <type>pom</type>
-            <scope>import</scope>
-        </dependency>
+    <dependencies> 
     </dependencies>
 </dependencyManagement>
 	
-	
-	
-
 	<build>
 		<plugins>
 			<plugin>
