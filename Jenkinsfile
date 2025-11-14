@@ -18,7 +18,7 @@ pipeline {
 
         stage('Build Backend (Spring Boot)') {
             steps {
-                dir('backend') {
+                dir('govportal/backend') {
                     sh 'mvn clean package -DskipTests'
                     sh "docker build -t ${BACKEND_IMAGE}:latest ."
                 }
@@ -27,7 +27,7 @@ pipeline {
 
         stage('Build Frontend (React with Yarn)') {
             steps {
-                dir('frontend') {
+                dir('govportal/frontend') {
                     sh 'yarn install'
                     sh 'yarn build'
                     sh "docker build -t ${FRONTEND_IMAGE}:latest ."
