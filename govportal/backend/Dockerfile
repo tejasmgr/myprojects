@@ -1,5 +1,5 @@
 # Step 1: Use a base image with Java 17 (or your Java version)
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:17-jdk-alpine
 
 # Step 2: Create a directory for the app
 WORKDIR /app
