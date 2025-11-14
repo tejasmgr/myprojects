@@ -59,8 +59,8 @@ pipeline {
                             docker stop gov-frontend || true &&
                             docker rm gov-frontend || true &&
 
-                            docker run -d -p 8080:8080 --name gov-backend ${BACKEND_IMAGE}:latest &&
-                            docker run -d -p 80:80 --name gov-frontend ${FRONTEND_IMAGE}:latest
+                            docker run -d --env-file .env -p 8080:8080 --name gov-backend --restart=always ${BACKEND_IMAGE}:latest &&
+                            docker run -d -p 80:80 --name gov-frontend --restart=always ${FRONTEND_IMAGE}:latest
                         '
                     """
                 }
