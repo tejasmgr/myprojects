@@ -26,15 +26,14 @@ pipeline {
         }
 
         stage('Build Frontend (React with Yarn)') {
-            steps {
-                dir('govportal/frontend') {
-                    sh 'yarn install'
-                    sh 'yarn build'
-                    sh "docker build -t ${FRONTEND_IMAGE}:latest ."
-                }
-            }
+    steps {
+        dir('govportal/frontend') {
+            sh 'yarn install'
+            sh 'CI=false yarn build'   // <--- IMPORTANT FIX
+            sh "docker build -t ${FRONTEND_IMAGE}:latest ."
         }
-
+    }
+}
         stage('Push Docker Images') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
